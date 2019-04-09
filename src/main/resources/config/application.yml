@@ -175,10 +175,10 @@ jhipster:
         description: filingService API documentation
         version: 0.0.1
         terms-of-service-url:
-        contact-name:
-        contact-url:
-        contact-email:
-        license:
+        contact-name: Edwin Njeru
+        contact-url: https://github.com/ifris-data/filing-service
+        contact-email: mailnjeru@gmail.com
+        license: MIT
         license-url:
 
 # ===================================================================
