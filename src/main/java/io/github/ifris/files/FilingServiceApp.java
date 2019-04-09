@@ -4,11 +4,13 @@ import io.github.ifris.files.client.OAuth2InterceptedFeignConfiguration;
 import io.github.ifris.files.config.ApplicationProperties;
 import io.github.ifris.files.config.DefaultProfileUtil;
 
+import io.github.ifris.files.service.IStorageService;
 import io.github.jhipster.config.JHipsterConstants;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
@@ -19,6 +21,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -30,13 +33,17 @@ import java.util.Collection;
 @SpringBootApplication
 @EnableConfigurationProperties({LiquibaseProperties.class, ApplicationProperties.class})
 @EnableDiscoveryClient
-public class FilingServiceApp {
+public class FilingServiceApp implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(FilingServiceApp.class);
 
+    @Resource
+    private IStorageService fileStorageService;
+
     private final Environment env;
 
-    public FilingServiceApp(Environment env) {
+    public FilingServiceApp(IStorageService fileStorageService, Environment env) {
+        this.fileStorageService = fileStorageService;
         this.env = env;
     }
 
@@ -109,5 +116,11 @@ public class FilingServiceApp {
         }
         log.info("\n----------------------------------------------------------\n\t" +
                 "Config Server: \t{}\n----------------------------------------------------------", configServerStatus);
+    }
+
+    @Override
+    public void run(final String... args) throws Exception {
+        fileStorageService.deleteAll();
+        fileStorageService.init();
     }
 }

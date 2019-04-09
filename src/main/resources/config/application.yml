@@ -127,6 +127,11 @@ spring:
             enabled: false
     thymeleaf:
         mode: HTML
+    servelet:
+        multipart:
+            max-file-size: 500KB
+            max-request-size: 500KB
+
 security:
     oauth2:
         resource:

@@ -43,9 +43,9 @@ spring:
                     destination: topic-jhipster
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:mariadb://localhost:3306/filingService?useLegacyDatetimeCode=false&serverTimezone=UTC
+        url: jdbc:mariadb://localhost:3306/ifris_filing_service?useLegacyDatetimeCode=false&serverTimezone=UTC
         username: root
-        password:
+        password: greywarren
         hikari:
             poolName: Hikari
             auto-commit: false
