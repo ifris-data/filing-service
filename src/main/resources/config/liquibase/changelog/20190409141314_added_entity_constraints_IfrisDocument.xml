@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <!--
+        Added the constraints for entity IfrisDocument.
+    -->
+    <changeSet id="20190409141314-2" author="jhipster">
+        
+        <addForeignKeyConstraint baseColumnNames="ifris_model_id"
+                                 baseTableName="ifris_document"
+                                 constraintName="fk_ifris_document_ifris_model_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="ifris_model"/>
+
+    </changeSet>
+</databaseChangeLog>

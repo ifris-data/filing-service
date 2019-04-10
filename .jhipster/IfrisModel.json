@@ -1,0 +1,53 @@
+{
+    "fluentMethods": true,
+    "clientRootFolder": "filingService",
+    "relationships": [
+        {
+            "relationshipName": "ifrisDocument",
+            "otherEntityName": "ifrisDocument",
+            "relationshipType": "one-to-many",
+            "otherEntityRelationshipName": "ifrisModel",
+            "otherEntityRelationshipNameUndefined": false
+        },
+        {
+            "relationshipName": "documentTemplate",
+            "otherEntityName": "documentTemplate",
+            "relationshipType": "one-to-many",
+            "otherEntityRelationshipName": "ifrisModel",
+            "otherEntityRelationshipNameUndefined": false
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "modelName",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "description",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "serviceName",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "servicePort",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20190409140702",
+    "dto": "mapstruct",
+    "searchEngine": "elasticsearch",
+    "service": "serviceImpl",
+    "entityTableName": "ifris_model",
+    "databaseType": "sql",
+    "jpaMetamodelFiltering": true,
+    "pagination": "pagination",
+    "microserviceName": "filingService"
+}
