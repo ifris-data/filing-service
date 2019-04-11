@@ -114,6 +114,9 @@ public class UploadedDocumentQueryService extends QueryService<UploadedDocument>
             if (criteria.getIfrisModel() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getIfrisModel(), UploadedDocument_.ifrisModel));
             }
+            if (criteria.getAppInstance() != null) {
+                specification = specification.and(buildStringSpecification(criteria.getAppInstance(), UploadedDocument_.appInstance));
+            }
         }
         return specification;
     }

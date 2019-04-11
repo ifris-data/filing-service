@@ -38,6 +38,8 @@ public class UploadedDocumentCriteria implements Serializable {
 
     private StringFilter ifrisModel;
 
+    private StringFilter appInstance;
+
     public LongFilter getId() {
         return id;
     }
@@ -102,6 +104,14 @@ public class UploadedDocumentCriteria implements Serializable {
         this.ifrisModel = ifrisModel;
     }
 
+    public StringFilter getAppInstance() {
+        return appInstance;
+    }
+
+    public void setAppInstance(StringFilter appInstance) {
+        this.appInstance = appInstance;
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -120,7 +130,8 @@ public class UploadedDocumentCriteria implements Serializable {
             Objects.equals(periodStart, that.periodStart) &&
             Objects.equals(periodEnd, that.periodEnd) &&
             Objects.equals(contentType, that.contentType) &&
-            Objects.equals(ifrisModel, that.ifrisModel);
+            Objects.equals(ifrisModel, that.ifrisModel) &&
+            Objects.equals(appInstance, that.appInstance);
     }
 
     @Override
@@ -133,7 +144,8 @@ public class UploadedDocumentCriteria implements Serializable {
         periodStart,
         periodEnd,
         contentType,
-        ifrisModel
+        ifrisModel,
+        appInstance
         );
     }
 
@@ -148,6 +160,7 @@ public class UploadedDocumentCriteria implements Serializable {
                 (periodEnd != null ? "periodEnd=" + periodEnd + ", " : "") +
                 (contentType != null ? "contentType=" + contentType + ", " : "") +
                 (ifrisModel != null ? "ifrisModel=" + ifrisModel + ", " : "") +
+                (appInstance != null ? "appInstance=" + appInstance + ", " : "") +
             "}";
     }
 

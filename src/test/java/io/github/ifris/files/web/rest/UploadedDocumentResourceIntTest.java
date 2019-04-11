@@ -74,6 +74,9 @@ public class UploadedDocumentResourceIntTest {
     private static final String DEFAULT_IFRIS_MODEL = "AAAAAAAAAA";
     private static final String UPDATED_IFRIS_MODEL = "BBBBBBBBBB";
 
+    private static final String DEFAULT_APP_INSTANCE = "AAAAAAAAAA";
+    private static final String UPDATED_APP_INSTANCE = "BBBBBBBBBB";
+
     @Autowired
     private UploadedDocumentRepository uploadedDocumentRepository;
 
@@ -139,7 +142,8 @@ public class UploadedDocumentResourceIntTest {
             .periodStart(DEFAULT_PERIOD_START)
             .periodEnd(DEFAULT_PERIOD_END)
             .contentType(DEFAULT_CONTENT_TYPE)
-            .ifrisModel(DEFAULT_IFRIS_MODEL);
+            .ifrisModel(DEFAULT_IFRIS_MODEL)
+            .appInstance(DEFAULT_APP_INSTANCE);
         return uploadedDocument;
     }
 
@@ -171,6 +175,7 @@ public class UploadedDocumentResourceIntTest {
         assertThat(testUploadedDocument.getPeriodEnd()).isEqualTo(DEFAULT_PERIOD_END);
         assertThat(testUploadedDocument.getContentType()).isEqualTo(DEFAULT_CONTENT_TYPE);
         assertThat(testUploadedDocument.getIfrisModel()).isEqualTo(DEFAULT_IFRIS_MODEL);
+        assertThat(testUploadedDocument.getAppInstance()).isEqualTo(DEFAULT_APP_INSTANCE);
 
         // Validate the UploadedDocument in Elasticsearch
         verify(mockUploadedDocumentSearchRepository, times(1)).save(testUploadedDocument);
@@ -334,6 +339,25 @@ public class UploadedDocumentResourceIntTest {
 
     @Test
     @Transactional
+    public void checkAppInstanceIsRequired() throws Exception {
+        int databaseSizeBeforeTest = uploadedDocumentRepository.findAll().size();
+        // set the field null
+        uploadedDocument.setAppInstance(null);
+
+        // Create the UploadedDocument, which fails.
+        UploadedDocumentDTO uploadedDocumentDTO = uploadedDocumentMapper.toDto(uploadedDocument);
+
+        restUploadedDocumentMockMvc.perform(post("/api/uploaded-documents")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(uploadedDocumentDTO)))
+            .andExpect(status().isBadRequest());
+
+        List<UploadedDocument> uploadedDocumentList = uploadedDocumentRepository.findAll();
+        assertThat(uploadedDocumentList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     public void getAllUploadedDocuments() throws Exception {
         // Initialize the database
         uploadedDocumentRepository.saveAndFlush(uploadedDocument);
@@ -349,7 +373,8 @@ public class UploadedDocumentResourceIntTest {
             .andExpect(jsonPath("$.[*].periodStart").value(hasItem(DEFAULT_PERIOD_START.toString())))
             .andExpect(jsonPath("$.[*].periodEnd").value(hasItem(DEFAULT_PERIOD_END.toString())))
             .andExpect(jsonPath("$.[*].contentType").value(hasItem(DEFAULT_CONTENT_TYPE.toString())))
-            .andExpect(jsonPath("$.[*].ifrisModel").value(hasItem(DEFAULT_IFRIS_MODEL.toString())));
+            .andExpect(jsonPath("$.[*].ifrisModel").value(hasItem(DEFAULT_IFRIS_MODEL.toString())))
+            .andExpect(jsonPath("$.[*].appInstance").value(hasItem(DEFAULT_APP_INSTANCE.toString())));
     }
     
     @Test
@@ -369,7 +394,8 @@ public class UploadedDocumentResourceIntTest {
             .andExpect(jsonPath("$.periodStart").value(DEFAULT_PERIOD_START.toString()))
             .andExpect(jsonPath("$.periodEnd").value(DEFAULT_PERIOD_END.toString()))
             .andExpect(jsonPath("$.contentType").value(DEFAULT_CONTENT_TYPE.toString()))
-            .andExpect(jsonPath("$.ifrisModel").value(DEFAULT_IFRIS_MODEL.toString()));
+            .andExpect(jsonPath("$.ifrisModel").value(DEFAULT_IFRIS_MODEL.toString()))
+            .andExpect(jsonPath("$.appInstance").value(DEFAULT_APP_INSTANCE.toString()));
     }
 
     @Test
@@ -644,6 +670,45 @@ public class UploadedDocumentResourceIntTest {
         // Get all the uploadedDocumentList where ifrisModel is null
         defaultUploadedDocumentShouldNotBeFound("ifrisModel.specified=false");
     }
+
+    @Test
+    @Transactional
+    public void getAllUploadedDocumentsByAppInstanceIsEqualToSomething() throws Exception {
+        // Initialize the database
+        uploadedDocumentRepository.saveAndFlush(uploadedDocument);
+
+        // Get all the uploadedDocumentList where appInstance equals to DEFAULT_APP_INSTANCE
+        defaultUploadedDocumentShouldBeFound("appInstance.equals=" + DEFAULT_APP_INSTANCE);
+
+        // Get all the uploadedDocumentList where appInstance equals to UPDATED_APP_INSTANCE
+        defaultUploadedDocumentShouldNotBeFound("appInstance.equals=" + UPDATED_APP_INSTANCE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllUploadedDocumentsByAppInstanceIsInShouldWork() throws Exception {
+        // Initialize the database
+        uploadedDocumentRepository.saveAndFlush(uploadedDocument);
+
+        // Get all the uploadedDocumentList where appInstance in DEFAULT_APP_INSTANCE or UPDATED_APP_INSTANCE
+        defaultUploadedDocumentShouldBeFound("appInstance.in=" + DEFAULT_APP_INSTANCE + "," + UPDATED_APP_INSTANCE);
+
+        // Get all the uploadedDocumentList where appInstance equals to UPDATED_APP_INSTANCE
+        defaultUploadedDocumentShouldNotBeFound("appInstance.in=" + UPDATED_APP_INSTANCE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllUploadedDocumentsByAppInstanceIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        uploadedDocumentRepository.saveAndFlush(uploadedDocument);
+
+        // Get all the uploadedDocumentList where appInstance is not null
+        defaultUploadedDocumentShouldBeFound("appInstance.specified=true");
+
+        // Get all the uploadedDocumentList where appInstance is null
+        defaultUploadedDocumentShouldNotBeFound("appInstance.specified=false");
+    }
     /**
      * Executes the search, and checks that the default entity is returned
      */
@@ -658,7 +723,8 @@ public class UploadedDocumentResourceIntTest {
             .andExpect(jsonPath("$.[*].periodStart").value(hasItem(DEFAULT_PERIOD_START)))
             .andExpect(jsonPath("$.[*].periodEnd").value(hasItem(DEFAULT_PERIOD_END)))
             .andExpect(jsonPath("$.[*].contentType").value(hasItem(DEFAULT_CONTENT_TYPE)))
-            .andExpect(jsonPath("$.[*].ifrisModel").value(hasItem(DEFAULT_IFRIS_MODEL)));
+            .andExpect(jsonPath("$.[*].ifrisModel").value(hasItem(DEFAULT_IFRIS_MODEL)))
+            .andExpect(jsonPath("$.[*].appInstance").value(hasItem(DEFAULT_APP_INSTANCE)));
 
         // Check, that the count call also returns 1
         restUploadedDocumentMockMvc.perform(get("/api/uploaded-documents/count?sort=id,desc&" + filter))
@@ -712,7 +778,8 @@ public class UploadedDocumentResourceIntTest {
             .periodStart(UPDATED_PERIOD_START)
             .periodEnd(UPDATED_PERIOD_END)
             .contentType(UPDATED_CONTENT_TYPE)
-            .ifrisModel(UPDATED_IFRIS_MODEL);
+            .ifrisModel(UPDATED_IFRIS_MODEL)
+            .appInstance(UPDATED_APP_INSTANCE);
         UploadedDocumentDTO uploadedDocumentDTO = uploadedDocumentMapper.toDto(updatedUploadedDocument);
 
         restUploadedDocumentMockMvc.perform(put("/api/uploaded-documents")
@@ -731,6 +798,7 @@ public class UploadedDocumentResourceIntTest {
         assertThat(testUploadedDocument.getPeriodEnd()).isEqualTo(UPDATED_PERIOD_END);
         assertThat(testUploadedDocument.getContentType()).isEqualTo(UPDATED_CONTENT_TYPE);
         assertThat(testUploadedDocument.getIfrisModel()).isEqualTo(UPDATED_IFRIS_MODEL);
+        assertThat(testUploadedDocument.getAppInstance()).isEqualTo(UPDATED_APP_INSTANCE);
 
         // Validate the UploadedDocument in Elasticsearch
         verify(mockUploadedDocumentSearchRepository, times(1)).save(testUploadedDocument);
@@ -797,7 +865,8 @@ public class UploadedDocumentResourceIntTest {
             .andExpect(jsonPath("$.[*].periodStart").value(hasItem(DEFAULT_PERIOD_START)))
             .andExpect(jsonPath("$.[*].periodEnd").value(hasItem(DEFAULT_PERIOD_END)))
             .andExpect(jsonPath("$.[*].contentType").value(hasItem(DEFAULT_CONTENT_TYPE)))
-            .andExpect(jsonPath("$.[*].ifrisModel").value(hasItem(DEFAULT_IFRIS_MODEL)));
+            .andExpect(jsonPath("$.[*].ifrisModel").value(hasItem(DEFAULT_IFRIS_MODEL)))
+            .andExpect(jsonPath("$.[*].appInstance").value(hasItem(DEFAULT_APP_INSTANCE)));
     }
 
     @Test

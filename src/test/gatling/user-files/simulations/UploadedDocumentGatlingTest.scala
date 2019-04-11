@@ -91,6 +91,7 @@ class UploadedDocumentGatlingTest extends Simulation {
                 , "periodEnd":"SAMPLE_TEXT"
                 , "contentType":"SAMPLE_TEXT"
                 , "ifrisModel":"SAMPLE_TEXT"
+                , "appInstance":"SAMPLE_TEXT"
                 }""")).asJSON
             .check(status.is(201))
             .check(headerRegex("Location", "(.*)").saveAs("new_uploadedDocument_url"))).exitHereIfFailed

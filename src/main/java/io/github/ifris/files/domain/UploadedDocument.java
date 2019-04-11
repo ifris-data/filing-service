@@ -54,6 +54,10 @@ public class UploadedDocument implements Serializable {
     @Column(name = "ifris_model", nullable = false)
     private String ifrisModel;
 
+    @NotNull
+    @Column(name = "app_instance", nullable = false)
+    private String appInstance;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
@@ -153,6 +157,19 @@ public class UploadedDocument implements Serializable {
     public void setIfrisModel(String ifrisModel) {
         this.ifrisModel = ifrisModel;
     }
+
+    public String getAppInstance() {
+        return appInstance;
+    }
+
+    public UploadedDocument appInstance(String appInstance) {
+        this.appInstance = appInstance;
+        return this;
+    }
+
+    public void setAppInstance(String appInstance) {
+        this.appInstance = appInstance;
+    }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
@@ -186,6 +203,7 @@ public class UploadedDocument implements Serializable {
             ", periodEnd='" + getPeriodEnd() + "'" +
             ", contentType='" + getContentType() + "'" +
             ", ifrisModel='" + getIfrisModel() + "'" +
+            ", appInstance='" + getAppInstance() + "'" +
             "}";
     }
 }

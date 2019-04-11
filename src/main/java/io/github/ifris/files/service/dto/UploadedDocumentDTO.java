@@ -31,6 +31,9 @@ public class UploadedDocumentDTO implements Serializable {
     @NotNull
     private String ifrisModel;
 
+    @NotNull
+    private String appInstance;
+
 
     public Long getId() {
         return id;
@@ -96,6 +99,14 @@ public class UploadedDocumentDTO implements Serializable {
         this.ifrisModel = ifrisModel;
     }
 
+    public String getAppInstance() {
+        return appInstance;
+    }
+
+    public void setAppInstance(String appInstance) {
+        this.appInstance = appInstance;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -128,6 +139,7 @@ public class UploadedDocumentDTO implements Serializable {
             ", periodEnd='" + getPeriodEnd() + "'" +
             ", contentType='" + getContentType() + "'" +
             ", ifrisModel='" + getIfrisModel() + "'" +
+            ", appInstance='" + getAppInstance() + "'" +
             "}";
     }
 }
