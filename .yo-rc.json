@@ -80,6 +80,8 @@
       "vi"
     ],
     "skipClient": true,
-    "skipUserManagement": true
+    "skipUserManagement": true,
+    "herokuAppName": "ifris-filing-service-1",
+    "herokuDeployType": "git"
   }
 }
