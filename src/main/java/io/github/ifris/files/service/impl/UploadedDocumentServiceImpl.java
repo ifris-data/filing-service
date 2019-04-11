@@ -1,14 +1,13 @@
 package io.github.ifris.files.service.impl;
 
-import io.github.ifris.files.service.UploadedDocumentService;
 import io.github.ifris.files.domain.UploadedDocument;
 import io.github.ifris.files.repository.UploadedDocumentRepository;
 import io.github.ifris.files.repository.search.UploadedDocumentSearchRepository;
+import io.github.ifris.files.service.UploadedDocumentService;
 import io.github.ifris.files.service.dto.UploadedDocumentDTO;
 import io.github.ifris.files.service.mapper.UploadedDocumentMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 /**
  * Service Implementation for managing UploadedDocument.
@@ -33,7 +32,8 @@ public class UploadedDocumentServiceImpl implements UploadedDocumentService {
 
     private final UploadedDocumentSearchRepository uploadedDocumentSearchRepository;
 
-    public UploadedDocumentServiceImpl(UploadedDocumentRepository uploadedDocumentRepository, UploadedDocumentMapper uploadedDocumentMapper, UploadedDocumentSearchRepository uploadedDocumentSearchRepository) {
+    public UploadedDocumentServiceImpl(UploadedDocumentRepository uploadedDocumentRepository, UploadedDocumentMapper uploadedDocumentMapper,
+                                       UploadedDocumentSearchRepository uploadedDocumentSearchRepository) {
         this.uploadedDocumentRepository = uploadedDocumentRepository;
         this.uploadedDocumentMapper = uploadedDocumentMapper;
         this.uploadedDocumentSearchRepository = uploadedDocumentSearchRepository;
@@ -65,8 +65,7 @@ public class UploadedDocumentServiceImpl implements UploadedDocumentService {
     @Transactional(readOnly = true)
     public Page<UploadedDocumentDTO> findAll(Pageable pageable) {
         log.debug("Request to get all UploadedDocuments");
-        return uploadedDocumentRepository.findAll(pageable)
-            .map(uploadedDocumentMapper::toDto);
+        return uploadedDocumentRepository.findAll(pageable).map(uploadedDocumentMapper::toDto);
     }
 
 
@@ -80,8 +79,7 @@ public class UploadedDocumentServiceImpl implements UploadedDocumentService {
     @Transactional(readOnly = true)
     public Optional<UploadedDocumentDTO> findOne(Long id) {
         log.debug("Request to get UploadedDocument : {}", id);
-        return uploadedDocumentRepository.findById(id)
-            .map(uploadedDocumentMapper::toDto);
+        return uploadedDocumentRepository.findById(id).map(uploadedDocumentMapper::toDto);
     }
 
     /**
@@ -99,7 +97,7 @@ public class UploadedDocumentServiceImpl implements UploadedDocumentService {
     /**
      * Search for the uploadedDocument corresponding to the query.
      *
-     * @param query the query of the search
+     * @param query    the query of the search
      * @param pageable the pagination information
      * @return the list of entities
      */
@@ -107,7 +105,6 @@ public class UploadedDocumentServiceImpl implements UploadedDocumentService {
     @Transactional(readOnly = true)
     public Page<UploadedDocumentDTO> search(String query, Pageable pageable) {
         log.debug("Request to search for a page of UploadedDocuments for query {}", query);
-        return uploadedDocumentSearchRepository.search(queryStringQuery(query), pageable)
-            .map(uploadedDocumentMapper::toDto);
+        return uploadedDocumentSearchRepository.search(queryStringQuery(query), pageable).map(uploadedDocumentMapper::toDto);
     }
 }

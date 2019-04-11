@@ -1,5 +1,6 @@
 package io.github.ifris.files.service.dto;
-import javax.validation.constraints.*;
+
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -130,16 +131,8 @@ public class UploadedDocumentDTO implements Serializable {
 
     @Override
     public String toString() {
-        return "UploadedDocumentDTO{" +
-            "id=" + getId() +
-            ", fileName='" + getFileName() + "'" +
-            ", year='" + getYear() + "'" +
-            ", description='" + getDescription() + "'" +
-            ", periodStart='" + getPeriodStart() + "'" +
-            ", periodEnd='" + getPeriodEnd() + "'" +
-            ", contentType='" + getContentType() + "'" +
-            ", ifrisModel='" + getIfrisModel() + "'" +
-            ", appInstance='" + getAppInstance() + "'" +
-            "}";
+        return "UploadedDocumentDTO{" + "id=" + getId() + ", fileName='" + getFileName() + "'" + ", year='" + getYear() + "'" + ", description='" + getDescription() + "'" + ", periodStart='" +
+            getPeriodStart() + "'" + ", periodEnd='" + getPeriodEnd() + "'" + ", contentType='" + getContentType() + "'" + ", ifrisModel='" + getIfrisModel() + "'" + ", appInstance='" +
+            getAppInstance() + "'" + "}";
     }
 }

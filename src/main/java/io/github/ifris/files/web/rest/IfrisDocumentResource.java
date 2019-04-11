@@ -1,17 +1,20 @@
 package io.github.ifris.files.web.rest;
 
-import io.github.ifris.files.mq.UploadedDocumentDTO;
 import io.github.ifris.files.mq.UploadedDocumentProducerChannel;
 import io.github.ifris.files.service.IfrisDocumentQueryService;
 import io.github.ifris.files.service.IfrisDocumentService;
+import io.github.ifris.files.service.UploadedDocumentService;
 import io.github.ifris.files.service.dto.IfrisDocumentCriteria;
 import io.github.ifris.files.service.dto.IfrisDocumentDTO;
+import io.github.ifris.files.service.dto.UploadedDocumentDTO;
 import io.github.ifris.files.web.rest.errors.BadRequestAlertException;
 import io.github.ifris.files.web.rest.util.HeaderUtil;
 import io.github.ifris.files.web.rest.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,19 +45,23 @@ import java.util.Optional;
 @RequestMapping("/api")
 public class IfrisDocumentResource {
 
-    private MessageChannel uploadedDocumentProducerChannel;
+    @Value("${eureka.instance.instanceId:JhipsterService}")
+    private String instanceName;
 
-
+    private final UploadedDocumentService uploadedDocumentService;
     private static final String ENTITY_NAME = "filingServiceIfrisDocument";
     private final Logger log = LoggerFactory.getLogger(IfrisDocumentResource.class);
     private final IfrisDocumentService ifrisDocumentService;
-
     private final IfrisDocumentQueryService ifrisDocumentQueryService;
+    private MessageChannel uploadedDocumentProducerChannel;
 
-    public IfrisDocumentResource(IfrisDocumentService ifrisDocumentService, IfrisDocumentQueryService ifrisDocumentQueryService, UploadedDocumentProducerChannel producerChannel) {
+    @Autowired
+    public IfrisDocumentResource(IfrisDocumentService ifrisDocumentService, IfrisDocumentQueryService ifrisDocumentQueryService, UploadedDocumentProducerChannel producerChannel,
+                                 final UploadedDocumentService uploadedDocumentService) {
         this.ifrisDocumentService = ifrisDocumentService;
         this.ifrisDocumentQueryService = ifrisDocumentQueryService;
         this.uploadedDocumentProducerChannel = producerChannel.uploadedDocumentChannel();
+        this.uploadedDocumentService = uploadedDocumentService;
     }
 
     /**
@@ -71,13 +79,31 @@ public class IfrisDocumentResource {
         }
         IfrisDocumentDTO result = ifrisDocumentService.save(ifrisDocumentDTO);
 
+        trackDocument(ifrisDocumentDTO);
+
+        return ResponseEntity.created(new URI("/api/ifris-documents/" + result.getId())).headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
+    }
+
+    /**
+     * Keep track of ifrisDocuments handled by this instance
+     *
+     * @param ifrisDocumentDTO
+     */
+    private synchronized void trackDocument(final @Valid @RequestBody IfrisDocumentDTO ifrisDocumentDTO) {
         UploadedDocumentDTO documentDTO = new UploadedDocumentDTO();
         documentDTO.setFileName(ifrisDocumentDTO.getFileName());
+        documentDTO.setContentType(ifrisDocumentDTO.getContentContentType());
+        documentDTO.setDescription(ifrisDocumentDTO.getDescription());
+        documentDTO.setYear(ifrisDocumentDTO.getYear().toString());
+        documentDTO.setPeriodStart(ifrisDocumentDTO.getPeriodStart().format(DateTimeFormatter.ISO_DATE));
+        documentDTO.setPeriodEnd(ifrisDocumentDTO.getPeriodEnd().format(DateTimeFormatter.ISO_DATE));
+        documentDTO.setContentType(ifrisDocumentDTO.getContentContentType());
+        documentDTO.setAppInstance(instanceName);
         // send message to channel
         uploadedDocumentProducerChannel.send(
             MessageBuilder.withPayload(documentDTO).build());
-
-        return ResponseEntity.created(new URI("/api/ifris-documents/" + result.getId())).headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
+        // persist the UploadedDocument
+        uploadedDocumentService.save(documentDTO);
     }
 
     /**

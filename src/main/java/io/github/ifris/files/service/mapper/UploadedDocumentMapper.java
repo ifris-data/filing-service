@@ -1,16 +1,14 @@
 package io.github.ifris.files.service.mapper;
 
-import io.github.ifris.files.domain.*;
+import io.github.ifris.files.domain.UploadedDocument;
 import io.github.ifris.files.service.dto.UploadedDocumentDTO;
-
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
 
 /**
  * Mapper for the entity UploadedDocument and its DTO UploadedDocumentDTO.
  */
 @Mapper(componentModel = "spring", uses = {})
 public interface UploadedDocumentMapper extends EntityMapper<UploadedDocumentDTO, UploadedDocument> {
-
 
 
     default UploadedDocument fromId(Long id) {

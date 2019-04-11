@@ -1,30 +1,34 @@
 package io.github.ifris.files.web.rest;
+
+import io.github.ifris.files.service.UploadedDocumentQueryService;
 import io.github.ifris.files.service.UploadedDocumentService;
+import io.github.ifris.files.service.dto.UploadedDocumentCriteria;
+import io.github.ifris.files.service.dto.UploadedDocumentDTO;
 import io.github.ifris.files.web.rest.errors.BadRequestAlertException;
 import io.github.ifris.files.web.rest.util.HeaderUtil;
 import io.github.ifris.files.web.rest.util.PaginationUtil;
-import io.github.ifris.files.service.dto.UploadedDocumentDTO;
-import io.github.ifris.files.service.dto.UploadedDocumentCriteria;
-import io.github.ifris.files.service.UploadedDocumentQueryService;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
-
-import static org.elasticsearch.index.query.QueryBuilders.*;
 
 /**
  * REST controller for managing UploadedDocument.
@@ -33,10 +37,8 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
 @RequestMapping("/api")
 public class UploadedDocumentResource {
 
-    private final Logger log = LoggerFactory.getLogger(UploadedDocumentResource.class);
-
     private static final String ENTITY_NAME = "filingServiceUploadedDocument";
-
+    private final Logger log = LoggerFactory.getLogger(UploadedDocumentResource.class);
     private final UploadedDocumentService uploadedDocumentService;
 
     private final UploadedDocumentQueryService uploadedDocumentQueryService;
@@ -60,18 +62,15 @@ public class UploadedDocumentResource {
             throw new BadRequestAlertException("A new uploadedDocument cannot already have an ID", ENTITY_NAME, "idexists");
         }
         UploadedDocumentDTO result = uploadedDocumentService.save(uploadedDocumentDTO);
-        return ResponseEntity.created(new URI("/api/uploaded-documents/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        return ResponseEntity.created(new URI("/api/uploaded-documents/" + result.getId())).headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
     }
 
     /**
      * PUT  /uploaded-documents : Updates an existing uploadedDocument.
      *
      * @param uploadedDocumentDTO the uploadedDocumentDTO to update
-     * @return the ResponseEntity with status 200 (OK) and with body the updated uploadedDocumentDTO,
-     * or with status 400 (Bad Request) if the uploadedDocumentDTO is not valid,
-     * or with status 500 (Internal Server Error) if the uploadedDocumentDTO couldn't be updated
+     * @return the ResponseEntity with status 200 (OK) and with body the updated uploadedDocumentDTO, or with status 400 (Bad Request) if the uploadedDocumentDTO is not valid, or with status 500
+     * (Internal Server Error) if the uploadedDocumentDTO couldn't be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
     @PutMapping("/uploaded-documents")
@@ -81,9 +80,7 @@ public class UploadedDocumentResource {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
         UploadedDocumentDTO result = uploadedDocumentService.save(uploadedDocumentDTO);
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, uploadedDocumentDTO.getId().toString()))
-            .body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, uploadedDocumentDTO.getId().toString())).body(result);
     }
 
     /**
@@ -102,11 +99,11 @@ public class UploadedDocumentResource {
     }
 
     /**
-    * GET  /uploaded-documents/count : count all the uploadedDocuments.
-    *
-    * @param criteria the criterias which the requested entities should match
-    * @return the ResponseEntity with status 200 (OK) and the count in body
-    */
+     * GET  /uploaded-documents/count : count all the uploadedDocuments.
+     *
+     * @param criteria the criterias which the requested entities should match
+     * @return the ResponseEntity with status 200 (OK) and the count in body
+     */
     @GetMapping("/uploaded-documents/count")
     public ResponseEntity<Long> countUploadedDocuments(UploadedDocumentCriteria criteria) {
         log.debug("REST request to count UploadedDocuments by criteria: {}", criteria);
@@ -140,10 +137,9 @@ public class UploadedDocumentResource {
     }
 
     /**
-     * SEARCH  /_search/uploaded-documents?query=:query : search for the uploadedDocument corresponding
-     * to the query.
+     * SEARCH  /_search/uploaded-documents?query=:query : search for the uploadedDocument corresponding to the query.
      *
-     * @param query the query of the uploadedDocument search
+     * @param query    the query of the uploadedDocument search
      * @param pageable the pagination information
      * @return the result of the search
      */

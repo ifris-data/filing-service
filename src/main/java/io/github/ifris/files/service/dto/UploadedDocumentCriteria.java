@@ -1,22 +1,17 @@
 package io.github.ifris.files.service.dto;
 
-import java.io.Serializable;
-import java.util.Objects;
-import io.github.jhipster.service.filter.BooleanFilter;
-import io.github.jhipster.service.filter.DoubleFilter;
 import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.FloatFilter;
-import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
 
+import java.io.Serializable;
+import java.util.Objects;
+
 /**
- * Criteria class for the UploadedDocument entity. This class is used in UploadedDocumentResource to
- * receive all the possible filtering options from the Http GET request parameters.
- * For example the following could be a valid requests:
+ * Criteria class for the UploadedDocument entity. This class is used in UploadedDocumentResource to receive all the possible filtering options from the Http GET request parameters. For example the
+ * following could be a valid requests:
  * <code> /uploaded-documents?id.greaterThan=5&amp;attr1.contains=something&amp;attr2.specified=false</code>
- * As Spring is unable to properly convert the types, unless specific {@link Filter} class are used, we need to use
- * fix type specific filters.
+ * As Spring is unable to properly convert the types, unless specific {@link Filter} class are used, we need to use fix type specific filters.
  */
 public class UploadedDocumentCriteria implements Serializable {
 
@@ -122,46 +117,22 @@ public class UploadedDocumentCriteria implements Serializable {
             return false;
         }
         final UploadedDocumentCriteria that = (UploadedDocumentCriteria) o;
-        return
-            Objects.equals(id, that.id) &&
-            Objects.equals(fileName, that.fileName) &&
-            Objects.equals(year, that.year) &&
-            Objects.equals(description, that.description) &&
-            Objects.equals(periodStart, that.periodStart) &&
-            Objects.equals(periodEnd, that.periodEnd) &&
-            Objects.equals(contentType, that.contentType) &&
-            Objects.equals(ifrisModel, that.ifrisModel) &&
-            Objects.equals(appInstance, that.appInstance);
+        return Objects.equals(id, that.id) && Objects.equals(fileName, that.fileName) && Objects.equals(year, that.year) && Objects.equals(description, that.description) &&
+            Objects.equals(periodStart, that.periodStart) && Objects.equals(periodEnd, that.periodEnd) && Objects.equals(contentType, that.contentType) &&
+            Objects.equals(ifrisModel, that.ifrisModel) && Objects.equals(appInstance, that.appInstance);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-        id,
-        fileName,
-        year,
-        description,
-        periodStart,
-        periodEnd,
-        contentType,
-        ifrisModel,
-        appInstance
-        );
+        return Objects.hash(id, fileName, year, description, periodStart, periodEnd, contentType, ifrisModel, appInstance);
     }
 
     @Override
     public String toString() {
-        return "UploadedDocumentCriteria{" +
-                (id != null ? "id=" + id + ", " : "") +
-                (fileName != null ? "fileName=" + fileName + ", " : "") +
-                (year != null ? "year=" + year + ", " : "") +
-                (description != null ? "description=" + description + ", " : "") +
-                (periodStart != null ? "periodStart=" + periodStart + ", " : "") +
-                (periodEnd != null ? "periodEnd=" + periodEnd + ", " : "") +
-                (contentType != null ? "contentType=" + contentType + ", " : "") +
-                (ifrisModel != null ? "ifrisModel=" + ifrisModel + ", " : "") +
-                (appInstance != null ? "appInstance=" + appInstance + ", " : "") +
-            "}";
+        return "UploadedDocumentCriteria{" + (id != null ? "id=" + id + ", " : "") + (fileName != null ? "fileName=" + fileName + ", " : "") + (year != null ? "year=" + year + ", " : "") +
+            (description != null ? "description=" + description + ", " : "") + (periodStart != null ? "periodStart=" + periodStart + ", " : "") +
+            (periodEnd != null ? "periodEnd=" + periodEnd + ", " : "") + (contentType != null ? "contentType=" + contentType + ", " : "") +
+            (ifrisModel != null ? "ifrisModel=" + ifrisModel + ", " : "") + (appInstance != null ? "appInstance=" + appInstance + ", " : "") + "}";
     }
 
 }

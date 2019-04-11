@@ -1,7 +1,6 @@
 package io.github.ifris.files.service;
 
 import io.github.ifris.files.service.dto.UploadedDocumentDTO;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -47,8 +46,7 @@ public interface UploadedDocumentService {
     /**
      * Search for the uploadedDocument corresponding to the query.
      *
-     * @param query the query of the search
-     * 
+     * @param query    the query of the search
      * @param pageable the pagination information
      * @return the list of entities
      */
