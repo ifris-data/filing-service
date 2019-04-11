@@ -1,20 +1,16 @@
 package io.github.ifris.files.web.rest;
 
 import io.github.ifris.files.FilingServiceApp;
-
 import io.github.ifris.files.config.SecurityBeanOverrideConfiguration;
-
 import io.github.ifris.files.domain.IfrisDocument;
 import io.github.ifris.files.domain.IfrisModel;
 import io.github.ifris.files.repository.IfrisDocumentRepository;
 import io.github.ifris.files.repository.search.IfrisDocumentSearchRepository;
+import io.github.ifris.files.service.IfrisDocumentQueryService;
 import io.github.ifris.files.service.IfrisDocumentService;
 import io.github.ifris.files.service.dto.IfrisDocumentDTO;
 import io.github.ifris.files.service.mapper.IfrisDocumentMapper;
 import io.github.ifris.files.web.rest.errors.ExceptionTranslator;
-import io.github.ifris.files.service.dto.IfrisDocumentCriteria;
-import io.github.ifris.files.service.IfrisDocumentQueryService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,14 +35,20 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 
-
 import static io.github.ifris.files.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 import static org.hamcrest.Matchers.hasItem;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test class for the IfrisDocumentResource REST controller.
@@ -116,39 +118,38 @@ public class IfrisDocumentResourceIntTest {
 
     private IfrisDocument ifrisDocument;
 
-    @Before
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-        final IfrisDocumentResource ifrisDocumentResource = new IfrisDocumentResource(ifrisDocumentService, ifrisDocumentQueryService);
-        this.restIfrisDocumentMockMvc = MockMvcBuilders.standaloneSetup(ifrisDocumentResource)
-            .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
-            .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter)
-            .setValidator(validator).build();
-    }
-
     /**
      * Create an entity for this test.
-     *
-     * This is a static method, as tests for other entities might also need it,
-     * if they test an entity which requires the current entity.
+     * <p>
+     * This is a static method, as tests for other entities might also need it, if they test an entity which requires the current entity.
      */
     public static IfrisDocument createEntity(EntityManager em) {
-        IfrisDocument ifrisDocument = new IfrisDocument()
-            .fileName(DEFAULT_FILE_NAME)
-            .year(DEFAULT_YEAR)
-            .description(DEFAULT_DESCRIPTION)
-            .periodStart(DEFAULT_PERIOD_START)
-            .periodEnd(DEFAULT_PERIOD_END)
-            .content(DEFAULT_CONTENT)
-            .contentContentType(DEFAULT_CONTENT_CONTENT_TYPE);
+        IfrisDocument ifrisDocument = new IfrisDocument().fileName(DEFAULT_FILE_NAME)
+                                                         .year(DEFAULT_YEAR)
+                                                         .description(DEFAULT_DESCRIPTION)
+                                                         .periodStart(DEFAULT_PERIOD_START)
+                                                         .periodEnd(DEFAULT_PERIOD_END)
+                                                         .content(DEFAULT_CONTENT)
+                                                         .contentContentType(DEFAULT_CONTENT_CONTENT_TYPE);
         // Add required entity
         IfrisModel ifrisModel = IfrisModelResourceIntTest.createEntity(em);
         em.persist(ifrisModel);
         em.flush();
         ifrisDocument.setIfrisModel(ifrisModel);
         return ifrisDocument;
+    }
+
+    @Before
+    public void setup() {
+        MockitoAnnotations.initMocks(this);
+        final IfrisDocumentResource ifrisDocumentResource = new IfrisDocumentResource(ifrisDocumentService, ifrisDocumentQueryService);
+        this.restIfrisDocumentMockMvc = MockMvcBuilders.standaloneSetup(ifrisDocumentResource)
+                                                       .setCustomArgumentResolvers(pageableArgumentResolver)
+                                                       .setControllerAdvice(exceptionTranslator)
+                                                       .setConversionService(createFormattingConversionService())
+                                                       .setMessageConverters(jacksonMessageConverter)
+                                                       .setValidator(validator)
+                                                       .build();
     }
 
     @Before
@@ -163,10 +164,8 @@ public class IfrisDocumentResourceIntTest {
 
         // Create the IfrisDocument
         IfrisDocumentDTO ifrisDocumentDTO = ifrisDocumentMapper.toDto(ifrisDocument);
-        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
-            .andExpect(status().isCreated());
+        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
+                                .andExpect(status().isCreated());
 
         // Validate the IfrisDocument in the database
         List<IfrisDocument> ifrisDocumentList = ifrisDocumentRepository.findAll();
@@ -194,10 +193,8 @@ public class IfrisDocumentResourceIntTest {
         IfrisDocumentDTO ifrisDocumentDTO = ifrisDocumentMapper.toDto(ifrisDocument);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
-            .andExpect(status().isBadRequest());
+        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
+                                .andExpect(status().isBadRequest());
 
         // Validate the IfrisDocument in the database
         List<IfrisDocument> ifrisDocumentList = ifrisDocumentRepository.findAll();
@@ -217,10 +214,8 @@ public class IfrisDocumentResourceIntTest {
         // Create the IfrisDocument, which fails.
         IfrisDocumentDTO ifrisDocumentDTO = ifrisDocumentMapper.toDto(ifrisDocument);
 
-        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
-            .andExpect(status().isBadRequest());
+        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
+                                .andExpect(status().isBadRequest());
 
         List<IfrisDocument> ifrisDocumentList = ifrisDocumentRepository.findAll();
         assertThat(ifrisDocumentList).hasSize(databaseSizeBeforeTest);
@@ -236,10 +231,8 @@ public class IfrisDocumentResourceIntTest {
         // Create the IfrisDocument, which fails.
         IfrisDocumentDTO ifrisDocumentDTO = ifrisDocumentMapper.toDto(ifrisDocument);
 
-        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
-            .andExpect(status().isBadRequest());
+        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
+                                .andExpect(status().isBadRequest());
 
         List<IfrisDocument> ifrisDocumentList = ifrisDocumentRepository.findAll();
         assertThat(ifrisDocumentList).hasSize(databaseSizeBeforeTest);
@@ -255,10 +248,8 @@ public class IfrisDocumentResourceIntTest {
         // Create the IfrisDocument, which fails.
         IfrisDocumentDTO ifrisDocumentDTO = ifrisDocumentMapper.toDto(ifrisDocument);
 
-        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
-            .andExpect(status().isBadRequest());
+        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
+                                .andExpect(status().isBadRequest());
 
         List<IfrisDocument> ifrisDocumentList = ifrisDocumentRepository.findAll();
         assertThat(ifrisDocumentList).hasSize(databaseSizeBeforeTest);
@@ -274,10 +265,8 @@ public class IfrisDocumentResourceIntTest {
         // Create the IfrisDocument, which fails.
         IfrisDocumentDTO ifrisDocumentDTO = ifrisDocumentMapper.toDto(ifrisDocument);
 
-        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
-            .andExpect(status().isBadRequest());
+        restIfrisDocumentMockMvc.perform(post("/api/ifris-documents").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
+                                .andExpect(status().isBadRequest());
 
         List<IfrisDocument> ifrisDocumentList = ifrisDocumentRepository.findAll();
         assertThat(ifrisDocumentList).hasSize(databaseSizeBeforeTest);
@@ -291,18 +280,18 @@ public class IfrisDocumentResourceIntTest {
 
         // Get all the ifrisDocumentList
         restIfrisDocumentMockMvc.perform(get("/api/ifris-documents?sort=id,desc"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisDocument.getId().intValue())))
-            .andExpect(jsonPath("$.[*].fileName").value(hasItem(DEFAULT_FILE_NAME.toString())))
-            .andExpect(jsonPath("$.[*].year").value(hasItem(DEFAULT_YEAR.intValue())))
-            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION.toString())))
-            .andExpect(jsonPath("$.[*].periodStart").value(hasItem(DEFAULT_PERIOD_START.toString())))
-            .andExpect(jsonPath("$.[*].periodEnd").value(hasItem(DEFAULT_PERIOD_END.toString())))
-            .andExpect(jsonPath("$.[*].contentContentType").value(hasItem(DEFAULT_CONTENT_CONTENT_TYPE)))
-            .andExpect(jsonPath("$.[*].content").value(hasItem(Base64Utils.encodeToString(DEFAULT_CONTENT))));
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisDocument.getId().intValue())))
+                                .andExpect(jsonPath("$.[*].fileName").value(hasItem(DEFAULT_FILE_NAME.toString())))
+                                .andExpect(jsonPath("$.[*].year").value(hasItem(DEFAULT_YEAR.intValue())))
+                                .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION.toString())))
+                                .andExpect(jsonPath("$.[*].periodStart").value(hasItem(DEFAULT_PERIOD_START.toString())))
+                                .andExpect(jsonPath("$.[*].periodEnd").value(hasItem(DEFAULT_PERIOD_END.toString())))
+                                .andExpect(jsonPath("$.[*].contentContentType").value(hasItem(DEFAULT_CONTENT_CONTENT_TYPE)))
+                                .andExpect(jsonPath("$.[*].content").value(hasItem(Base64Utils.encodeToString(DEFAULT_CONTENT))));
     }
-    
+
     @Test
     @Transactional
     public void getIfrisDocument() throws Exception {
@@ -311,16 +300,16 @@ public class IfrisDocumentResourceIntTest {
 
         // Get the ifrisDocument
         restIfrisDocumentMockMvc.perform(get("/api/ifris-documents/{id}", ifrisDocument.getId()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.id").value(ifrisDocument.getId().intValue()))
-            .andExpect(jsonPath("$.fileName").value(DEFAULT_FILE_NAME.toString()))
-            .andExpect(jsonPath("$.year").value(DEFAULT_YEAR.intValue()))
-            .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION.toString()))
-            .andExpect(jsonPath("$.periodStart").value(DEFAULT_PERIOD_START.toString()))
-            .andExpect(jsonPath("$.periodEnd").value(DEFAULT_PERIOD_END.toString()))
-            .andExpect(jsonPath("$.contentContentType").value(DEFAULT_CONTENT_CONTENT_TYPE))
-            .andExpect(jsonPath("$.content").value(Base64Utils.encodeToString(DEFAULT_CONTENT)));
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                .andExpect(jsonPath("$.id").value(ifrisDocument.getId().intValue()))
+                                .andExpect(jsonPath("$.fileName").value(DEFAULT_FILE_NAME.toString()))
+                                .andExpect(jsonPath("$.year").value(DEFAULT_YEAR.intValue()))
+                                .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION.toString()))
+                                .andExpect(jsonPath("$.periodStart").value(DEFAULT_PERIOD_START.toString()))
+                                .andExpect(jsonPath("$.periodEnd").value(DEFAULT_PERIOD_END.toString()))
+                                .andExpect(jsonPath("$.contentContentType").value(DEFAULT_CONTENT_CONTENT_TYPE))
+                                .andExpect(jsonPath("$.content").value(Base64Utils.encodeToString(DEFAULT_CONTENT)));
     }
 
     @Test
@@ -622,22 +611,22 @@ public class IfrisDocumentResourceIntTest {
      */
     private void defaultIfrisDocumentShouldBeFound(String filter) throws Exception {
         restIfrisDocumentMockMvc.perform(get("/api/ifris-documents?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisDocument.getId().intValue())))
-            .andExpect(jsonPath("$.[*].fileName").value(hasItem(DEFAULT_FILE_NAME)))
-            .andExpect(jsonPath("$.[*].year").value(hasItem(DEFAULT_YEAR.intValue())))
-            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
-            .andExpect(jsonPath("$.[*].periodStart").value(hasItem(DEFAULT_PERIOD_START.toString())))
-            .andExpect(jsonPath("$.[*].periodEnd").value(hasItem(DEFAULT_PERIOD_END.toString())))
-            .andExpect(jsonPath("$.[*].contentContentType").value(hasItem(DEFAULT_CONTENT_CONTENT_TYPE)))
-            .andExpect(jsonPath("$.[*].content").value(hasItem(Base64Utils.encodeToString(DEFAULT_CONTENT))));
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisDocument.getId().intValue())))
+                                .andExpect(jsonPath("$.[*].fileName").value(hasItem(DEFAULT_FILE_NAME)))
+                                .andExpect(jsonPath("$.[*].year").value(hasItem(DEFAULT_YEAR.intValue())))
+                                .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
+                                .andExpect(jsonPath("$.[*].periodStart").value(hasItem(DEFAULT_PERIOD_START.toString())))
+                                .andExpect(jsonPath("$.[*].periodEnd").value(hasItem(DEFAULT_PERIOD_END.toString())))
+                                .andExpect(jsonPath("$.[*].contentContentType").value(hasItem(DEFAULT_CONTENT_CONTENT_TYPE)))
+                                .andExpect(jsonPath("$.[*].content").value(hasItem(Base64Utils.encodeToString(DEFAULT_CONTENT))));
 
         // Check, that the count call also returns 1
         restIfrisDocumentMockMvc.perform(get("/api/ifris-documents/count?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(content().string("1"));
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                .andExpect(content().string("1"));
     }
 
     /**
@@ -645,16 +634,16 @@ public class IfrisDocumentResourceIntTest {
      */
     private void defaultIfrisDocumentShouldNotBeFound(String filter) throws Exception {
         restIfrisDocumentMockMvc.perform(get("/api/ifris-documents?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$").isArray())
-            .andExpect(jsonPath("$").isEmpty());
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                .andExpect(jsonPath("$").isArray())
+                                .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
         restIfrisDocumentMockMvc.perform(get("/api/ifris-documents/count?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(content().string("0"));
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                .andExpect(content().string("0"));
     }
 
 
@@ -662,8 +651,7 @@ public class IfrisDocumentResourceIntTest {
     @Transactional
     public void getNonExistingIfrisDocument() throws Exception {
         // Get the ifrisDocument
-        restIfrisDocumentMockMvc.perform(get("/api/ifris-documents/{id}", Long.MAX_VALUE))
-            .andExpect(status().isNotFound());
+        restIfrisDocumentMockMvc.perform(get("/api/ifris-documents/{id}", Long.MAX_VALUE)).andExpect(status().isNotFound());
     }
 
     @Test
@@ -678,20 +666,17 @@ public class IfrisDocumentResourceIntTest {
         IfrisDocument updatedIfrisDocument = ifrisDocumentRepository.findById(ifrisDocument.getId()).get();
         // Disconnect from session so that the updates on updatedIfrisDocument are not directly saved in db
         em.detach(updatedIfrisDocument);
-        updatedIfrisDocument
-            .fileName(UPDATED_FILE_NAME)
-            .year(UPDATED_YEAR)
-            .description(UPDATED_DESCRIPTION)
-            .periodStart(UPDATED_PERIOD_START)
-            .periodEnd(UPDATED_PERIOD_END)
-            .content(UPDATED_CONTENT)
-            .contentContentType(UPDATED_CONTENT_CONTENT_TYPE);
+        updatedIfrisDocument.fileName(UPDATED_FILE_NAME)
+                            .year(UPDATED_YEAR)
+                            .description(UPDATED_DESCRIPTION)
+                            .periodStart(UPDATED_PERIOD_START)
+                            .periodEnd(UPDATED_PERIOD_END)
+                            .content(UPDATED_CONTENT)
+                            .contentContentType(UPDATED_CONTENT_CONTENT_TYPE);
         IfrisDocumentDTO ifrisDocumentDTO = ifrisDocumentMapper.toDto(updatedIfrisDocument);
 
-        restIfrisDocumentMockMvc.perform(put("/api/ifris-documents")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
-            .andExpect(status().isOk());
+        restIfrisDocumentMockMvc.perform(put("/api/ifris-documents").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
+                                .andExpect(status().isOk());
 
         // Validate the IfrisDocument in the database
         List<IfrisDocument> ifrisDocumentList = ifrisDocumentRepository.findAll();
@@ -718,10 +703,8 @@ public class IfrisDocumentResourceIntTest {
         IfrisDocumentDTO ifrisDocumentDTO = ifrisDocumentMapper.toDto(ifrisDocument);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restIfrisDocumentMockMvc.perform(put("/api/ifris-documents")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
-            .andExpect(status().isBadRequest());
+        restIfrisDocumentMockMvc.perform(put("/api/ifris-documents").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisDocumentDTO)))
+                                .andExpect(status().isBadRequest());
 
         // Validate the IfrisDocument in the database
         List<IfrisDocument> ifrisDocumentList = ifrisDocumentRepository.findAll();
@@ -740,9 +723,7 @@ public class IfrisDocumentResourceIntTest {
         int databaseSizeBeforeDelete = ifrisDocumentRepository.findAll().size();
 
         // Delete the ifrisDocument
-        restIfrisDocumentMockMvc.perform(delete("/api/ifris-documents/{id}", ifrisDocument.getId())
-            .accept(TestUtil.APPLICATION_JSON_UTF8))
-            .andExpect(status().isOk());
+        restIfrisDocumentMockMvc.perform(delete("/api/ifris-documents/{id}", ifrisDocument.getId()).accept(TestUtil.APPLICATION_JSON_UTF8)).andExpect(status().isOk());
 
         // Validate the database is empty
         List<IfrisDocument> ifrisDocumentList = ifrisDocumentRepository.findAll();
@@ -757,20 +738,20 @@ public class IfrisDocumentResourceIntTest {
     public void searchIfrisDocument() throws Exception {
         // Initialize the database
         ifrisDocumentRepository.saveAndFlush(ifrisDocument);
-        when(mockIfrisDocumentSearchRepository.search(queryStringQuery("id:" + ifrisDocument.getId()), PageRequest.of(0, 20)))
-            .thenReturn(new PageImpl<>(Collections.singletonList(ifrisDocument), PageRequest.of(0, 1), 1));
+        when(mockIfrisDocumentSearchRepository.search(queryStringQuery("id:" + ifrisDocument.getId()), PageRequest.of(0, 20))).thenReturn(
+            new PageImpl<>(Collections.singletonList(ifrisDocument), PageRequest.of(0, 1), 1));
         // Search the ifrisDocument
         restIfrisDocumentMockMvc.perform(get("/api/_search/ifris-documents?query=id:" + ifrisDocument.getId()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisDocument.getId().intValue())))
-            .andExpect(jsonPath("$.[*].fileName").value(hasItem(DEFAULT_FILE_NAME)))
-            .andExpect(jsonPath("$.[*].year").value(hasItem(DEFAULT_YEAR.intValue())))
-            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
-            .andExpect(jsonPath("$.[*].periodStart").value(hasItem(DEFAULT_PERIOD_START.toString())))
-            .andExpect(jsonPath("$.[*].periodEnd").value(hasItem(DEFAULT_PERIOD_END.toString())))
-            .andExpect(jsonPath("$.[*].contentContentType").value(hasItem(DEFAULT_CONTENT_CONTENT_TYPE)))
-            .andExpect(jsonPath("$.[*].content").value(hasItem(Base64Utils.encodeToString(DEFAULT_CONTENT))));
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisDocument.getId().intValue())))
+                                .andExpect(jsonPath("$.[*].fileName").value(hasItem(DEFAULT_FILE_NAME)))
+                                .andExpect(jsonPath("$.[*].year").value(hasItem(DEFAULT_YEAR.intValue())))
+                                .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
+                                .andExpect(jsonPath("$.[*].periodStart").value(hasItem(DEFAULT_PERIOD_START.toString())))
+                                .andExpect(jsonPath("$.[*].periodEnd").value(hasItem(DEFAULT_PERIOD_END.toString())))
+                                .andExpect(jsonPath("$.[*].contentContentType").value(hasItem(DEFAULT_CONTENT_CONTENT_TYPE)))
+                                .andExpect(jsonPath("$.[*].content").value(hasItem(Base64Utils.encodeToString(DEFAULT_CONTENT))));
     }
 
     @Test

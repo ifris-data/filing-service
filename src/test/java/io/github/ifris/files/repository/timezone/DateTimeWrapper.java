@@ -1,8 +1,19 @@
 package io.github.ifris.files.repository.timezone;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Entity
@@ -120,12 +131,6 @@ public class DateTimeWrapper implements Serializable {
 
     @Override
     public String toString() {
-        return "TimeZoneTest{" +
-            "id=" + id +
-            ", instant=" + instant +
-            ", localDateTime=" + localDateTime +
-            ", offsetDateTime=" + offsetDateTime +
-            ", zonedDateTime=" + zonedDateTime +
-            '}';
+        return "TimeZoneTest{" + "id=" + id + ", instant=" + instant + ", localDateTime=" + localDateTime + ", offsetDateTime=" + offsetDateTime + ", zonedDateTime=" + zonedDateTime + '}';
     }
 }

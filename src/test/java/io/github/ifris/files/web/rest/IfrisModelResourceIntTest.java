@@ -1,21 +1,17 @@
 package io.github.ifris.files.web.rest;
 
 import io.github.ifris.files.FilingServiceApp;
-
 import io.github.ifris.files.config.SecurityBeanOverrideConfiguration;
-
-import io.github.ifris.files.domain.IfrisModel;
-import io.github.ifris.files.domain.IfrisDocument;
 import io.github.ifris.files.domain.DocumentTemplate;
+import io.github.ifris.files.domain.IfrisDocument;
+import io.github.ifris.files.domain.IfrisModel;
 import io.github.ifris.files.repository.IfrisModelRepository;
 import io.github.ifris.files.repository.search.IfrisModelSearchRepository;
+import io.github.ifris.files.service.IfrisModelQueryService;
 import io.github.ifris.files.service.IfrisModelService;
 import io.github.ifris.files.service.dto.IfrisModelDTO;
 import io.github.ifris.files.service.mapper.IfrisModelMapper;
 import io.github.ifris.files.web.rest.errors.ExceptionTranslator;
-import io.github.ifris.files.service.dto.IfrisModelCriteria;
-import io.github.ifris.files.service.IfrisModelQueryService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,14 +33,20 @@ import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
 
-
 import static io.github.ifris.files.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 import static org.hamcrest.Matchers.hasItem;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test class for the IfrisModelResource REST controller.
@@ -106,31 +108,27 @@ public class IfrisModelResourceIntTest {
 
     private IfrisModel ifrisModel;
 
+    /**
+     * Create an entity for this test.
+     * <p>
+     * This is a static method, as tests for other entities might also need it, if they test an entity which requires the current entity.
+     */
+    public static IfrisModel createEntity(EntityManager em) {
+        IfrisModel ifrisModel = new IfrisModel().modelName(DEFAULT_MODEL_NAME).description(DEFAULT_DESCRIPTION).serviceName(DEFAULT_SERVICE_NAME).servicePort(DEFAULT_SERVICE_PORT);
+        return ifrisModel;
+    }
+
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
         final IfrisModelResource ifrisModelResource = new IfrisModelResource(ifrisModelService, ifrisModelQueryService);
         this.restIfrisModelMockMvc = MockMvcBuilders.standaloneSetup(ifrisModelResource)
-            .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
-            .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter)
-            .setValidator(validator).build();
-    }
-
-    /**
-     * Create an entity for this test.
-     *
-     * This is a static method, as tests for other entities might also need it,
-     * if they test an entity which requires the current entity.
-     */
-    public static IfrisModel createEntity(EntityManager em) {
-        IfrisModel ifrisModel = new IfrisModel()
-            .modelName(DEFAULT_MODEL_NAME)
-            .description(DEFAULT_DESCRIPTION)
-            .serviceName(DEFAULT_SERVICE_NAME)
-            .servicePort(DEFAULT_SERVICE_PORT);
-        return ifrisModel;
+                                                    .setCustomArgumentResolvers(pageableArgumentResolver)
+                                                    .setControllerAdvice(exceptionTranslator)
+                                                    .setConversionService(createFormattingConversionService())
+                                                    .setMessageConverters(jacksonMessageConverter)
+                                                    .setValidator(validator)
+                                                    .build();
     }
 
     @Before
@@ -145,10 +143,7 @@ public class IfrisModelResourceIntTest {
 
         // Create the IfrisModel
         IfrisModelDTO ifrisModelDTO = ifrisModelMapper.toDto(ifrisModel);
-        restIfrisModelMockMvc.perform(post("/api/ifris-models")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO)))
-            .andExpect(status().isCreated());
+        restIfrisModelMockMvc.perform(post("/api/ifris-models").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO))).andExpect(status().isCreated());
 
         // Validate the IfrisModel in the database
         List<IfrisModel> ifrisModelList = ifrisModelRepository.findAll();
@@ -173,10 +168,8 @@ public class IfrisModelResourceIntTest {
         IfrisModelDTO ifrisModelDTO = ifrisModelMapper.toDto(ifrisModel);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restIfrisModelMockMvc.perform(post("/api/ifris-models")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO)))
-            .andExpect(status().isBadRequest());
+        restIfrisModelMockMvc.perform(post("/api/ifris-models").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO)))
+                             .andExpect(status().isBadRequest());
 
         // Validate the IfrisModel in the database
         List<IfrisModel> ifrisModelList = ifrisModelRepository.findAll();
@@ -196,10 +189,8 @@ public class IfrisModelResourceIntTest {
         // Create the IfrisModel, which fails.
         IfrisModelDTO ifrisModelDTO = ifrisModelMapper.toDto(ifrisModel);
 
-        restIfrisModelMockMvc.perform(post("/api/ifris-models")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO)))
-            .andExpect(status().isBadRequest());
+        restIfrisModelMockMvc.perform(post("/api/ifris-models").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO)))
+                             .andExpect(status().isBadRequest());
 
         List<IfrisModel> ifrisModelList = ifrisModelRepository.findAll();
         assertThat(ifrisModelList).hasSize(databaseSizeBeforeTest);
@@ -215,10 +206,8 @@ public class IfrisModelResourceIntTest {
         // Create the IfrisModel, which fails.
         IfrisModelDTO ifrisModelDTO = ifrisModelMapper.toDto(ifrisModel);
 
-        restIfrisModelMockMvc.perform(post("/api/ifris-models")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO)))
-            .andExpect(status().isBadRequest());
+        restIfrisModelMockMvc.perform(post("/api/ifris-models").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO)))
+                             .andExpect(status().isBadRequest());
 
         List<IfrisModel> ifrisModelList = ifrisModelRepository.findAll();
         assertThat(ifrisModelList).hasSize(databaseSizeBeforeTest);
@@ -232,15 +221,15 @@ public class IfrisModelResourceIntTest {
 
         // Get all the ifrisModelList
         restIfrisModelMockMvc.perform(get("/api/ifris-models?sort=id,desc"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisModel.getId().intValue())))
-            .andExpect(jsonPath("$.[*].modelName").value(hasItem(DEFAULT_MODEL_NAME.toString())))
-            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION.toString())))
-            .andExpect(jsonPath("$.[*].serviceName").value(hasItem(DEFAULT_SERVICE_NAME.toString())))
-            .andExpect(jsonPath("$.[*].servicePort").value(hasItem(DEFAULT_SERVICE_PORT.toString())));
+                             .andExpect(status().isOk())
+                             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                             .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisModel.getId().intValue())))
+                             .andExpect(jsonPath("$.[*].modelName").value(hasItem(DEFAULT_MODEL_NAME.toString())))
+                             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION.toString())))
+                             .andExpect(jsonPath("$.[*].serviceName").value(hasItem(DEFAULT_SERVICE_NAME.toString())))
+                             .andExpect(jsonPath("$.[*].servicePort").value(hasItem(DEFAULT_SERVICE_PORT.toString())));
     }
-    
+
     @Test
     @Transactional
     public void getIfrisModel() throws Exception {
@@ -249,13 +238,13 @@ public class IfrisModelResourceIntTest {
 
         // Get the ifrisModel
         restIfrisModelMockMvc.perform(get("/api/ifris-models/{id}", ifrisModel.getId()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.id").value(ifrisModel.getId().intValue()))
-            .andExpect(jsonPath("$.modelName").value(DEFAULT_MODEL_NAME.toString()))
-            .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION.toString()))
-            .andExpect(jsonPath("$.serviceName").value(DEFAULT_SERVICE_NAME.toString()))
-            .andExpect(jsonPath("$.servicePort").value(DEFAULT_SERVICE_PORT.toString()));
+                             .andExpect(status().isOk())
+                             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                             .andExpect(jsonPath("$.id").value(ifrisModel.getId().intValue()))
+                             .andExpect(jsonPath("$.modelName").value(DEFAULT_MODEL_NAME.toString()))
+                             .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION.toString()))
+                             .andExpect(jsonPath("$.serviceName").value(DEFAULT_SERVICE_NAME.toString()))
+                             .andExpect(jsonPath("$.servicePort").value(DEFAULT_SERVICE_PORT.toString()));
     }
 
     @Test
@@ -456,19 +445,19 @@ public class IfrisModelResourceIntTest {
      */
     private void defaultIfrisModelShouldBeFound(String filter) throws Exception {
         restIfrisModelMockMvc.perform(get("/api/ifris-models?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisModel.getId().intValue())))
-            .andExpect(jsonPath("$.[*].modelName").value(hasItem(DEFAULT_MODEL_NAME)))
-            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
-            .andExpect(jsonPath("$.[*].serviceName").value(hasItem(DEFAULT_SERVICE_NAME)))
-            .andExpect(jsonPath("$.[*].servicePort").value(hasItem(DEFAULT_SERVICE_PORT)));
+                             .andExpect(status().isOk())
+                             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                             .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisModel.getId().intValue())))
+                             .andExpect(jsonPath("$.[*].modelName").value(hasItem(DEFAULT_MODEL_NAME)))
+                             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
+                             .andExpect(jsonPath("$.[*].serviceName").value(hasItem(DEFAULT_SERVICE_NAME)))
+                             .andExpect(jsonPath("$.[*].servicePort").value(hasItem(DEFAULT_SERVICE_PORT)));
 
         // Check, that the count call also returns 1
         restIfrisModelMockMvc.perform(get("/api/ifris-models/count?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(content().string("1"));
+                             .andExpect(status().isOk())
+                             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                             .andExpect(content().string("1"));
     }
 
     /**
@@ -476,16 +465,16 @@ public class IfrisModelResourceIntTest {
      */
     private void defaultIfrisModelShouldNotBeFound(String filter) throws Exception {
         restIfrisModelMockMvc.perform(get("/api/ifris-models?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$").isArray())
-            .andExpect(jsonPath("$").isEmpty());
+                             .andExpect(status().isOk())
+                             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                             .andExpect(jsonPath("$").isArray())
+                             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
         restIfrisModelMockMvc.perform(get("/api/ifris-models/count?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(content().string("0"));
+                             .andExpect(status().isOk())
+                             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                             .andExpect(content().string("0"));
     }
 
 
@@ -493,8 +482,7 @@ public class IfrisModelResourceIntTest {
     @Transactional
     public void getNonExistingIfrisModel() throws Exception {
         // Get the ifrisModel
-        restIfrisModelMockMvc.perform(get("/api/ifris-models/{id}", Long.MAX_VALUE))
-            .andExpect(status().isNotFound());
+        restIfrisModelMockMvc.perform(get("/api/ifris-models/{id}", Long.MAX_VALUE)).andExpect(status().isNotFound());
     }
 
     @Test
@@ -509,17 +497,10 @@ public class IfrisModelResourceIntTest {
         IfrisModel updatedIfrisModel = ifrisModelRepository.findById(ifrisModel.getId()).get();
         // Disconnect from session so that the updates on updatedIfrisModel are not directly saved in db
         em.detach(updatedIfrisModel);
-        updatedIfrisModel
-            .modelName(UPDATED_MODEL_NAME)
-            .description(UPDATED_DESCRIPTION)
-            .serviceName(UPDATED_SERVICE_NAME)
-            .servicePort(UPDATED_SERVICE_PORT);
+        updatedIfrisModel.modelName(UPDATED_MODEL_NAME).description(UPDATED_DESCRIPTION).serviceName(UPDATED_SERVICE_NAME).servicePort(UPDATED_SERVICE_PORT);
         IfrisModelDTO ifrisModelDTO = ifrisModelMapper.toDto(updatedIfrisModel);
 
-        restIfrisModelMockMvc.perform(put("/api/ifris-models")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO)))
-            .andExpect(status().isOk());
+        restIfrisModelMockMvc.perform(put("/api/ifris-models").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO))).andExpect(status().isOk());
 
         // Validate the IfrisModel in the database
         List<IfrisModel> ifrisModelList = ifrisModelRepository.findAll();
@@ -543,10 +524,8 @@ public class IfrisModelResourceIntTest {
         IfrisModelDTO ifrisModelDTO = ifrisModelMapper.toDto(ifrisModel);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restIfrisModelMockMvc.perform(put("/api/ifris-models")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO)))
-            .andExpect(status().isBadRequest());
+        restIfrisModelMockMvc.perform(put("/api/ifris-models").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(ifrisModelDTO)))
+                             .andExpect(status().isBadRequest());
 
         // Validate the IfrisModel in the database
         List<IfrisModel> ifrisModelList = ifrisModelRepository.findAll();
@@ -565,9 +544,7 @@ public class IfrisModelResourceIntTest {
         int databaseSizeBeforeDelete = ifrisModelRepository.findAll().size();
 
         // Delete the ifrisModel
-        restIfrisModelMockMvc.perform(delete("/api/ifris-models/{id}", ifrisModel.getId())
-            .accept(TestUtil.APPLICATION_JSON_UTF8))
-            .andExpect(status().isOk());
+        restIfrisModelMockMvc.perform(delete("/api/ifris-models/{id}", ifrisModel.getId()).accept(TestUtil.APPLICATION_JSON_UTF8)).andExpect(status().isOk());
 
         // Validate the database is empty
         List<IfrisModel> ifrisModelList = ifrisModelRepository.findAll();
@@ -582,17 +559,17 @@ public class IfrisModelResourceIntTest {
     public void searchIfrisModel() throws Exception {
         // Initialize the database
         ifrisModelRepository.saveAndFlush(ifrisModel);
-        when(mockIfrisModelSearchRepository.search(queryStringQuery("id:" + ifrisModel.getId()), PageRequest.of(0, 20)))
-            .thenReturn(new PageImpl<>(Collections.singletonList(ifrisModel), PageRequest.of(0, 1), 1));
+        when(mockIfrisModelSearchRepository.search(queryStringQuery("id:" + ifrisModel.getId()), PageRequest.of(0, 20))).thenReturn(
+            new PageImpl<>(Collections.singletonList(ifrisModel), PageRequest.of(0, 1), 1));
         // Search the ifrisModel
         restIfrisModelMockMvc.perform(get("/api/_search/ifris-models?query=id:" + ifrisModel.getId()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisModel.getId().intValue())))
-            .andExpect(jsonPath("$.[*].modelName").value(hasItem(DEFAULT_MODEL_NAME)))
-            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
-            .andExpect(jsonPath("$.[*].serviceName").value(hasItem(DEFAULT_SERVICE_NAME)))
-            .andExpect(jsonPath("$.[*].servicePort").value(hasItem(DEFAULT_SERVICE_PORT)));
+                             .andExpect(status().isOk())
+                             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                             .andExpect(jsonPath("$.[*].id").value(hasItem(ifrisModel.getId().intValue())))
+                             .andExpect(jsonPath("$.[*].modelName").value(hasItem(DEFAULT_MODEL_NAME)))
+                             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
+                             .andExpect(jsonPath("$.[*].serviceName").value(hasItem(DEFAULT_SERVICE_NAME)))
+                             .andExpect(jsonPath("$.[*].servicePort").value(hasItem(DEFAULT_SERVICE_PORT)));
     }
 
     @Test

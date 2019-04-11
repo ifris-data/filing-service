@@ -1,10 +1,10 @@
 package io.github.ifris.files.web.rest;
 
+import ch.qos.logback.classic.AsyncAppender;
+import ch.qos.logback.classic.LoggerContext;
 import io.github.ifris.files.FilingServiceApp;
 import io.github.ifris.files.config.SecurityBeanOverrideConfiguration;
 import io.github.ifris.files.web.rest.vm.LoggerVM;
-import ch.qos.logback.classic.AsyncAppender;
-import ch.qos.logback.classic.LoggerContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,16 +35,12 @@ public class LogsResourceIntTest {
     @Before
     public void setup() {
         LogsResource logsResource = new LogsResource();
-        this.restLogsMockMvc = MockMvcBuilders
-            .standaloneSetup(logsResource)
-            .build();
+        this.restLogsMockMvc = MockMvcBuilders.standaloneSetup(logsResource).build();
     }
 
     @Test
     public void getAllLogs() throws Exception {
-        restLogsMockMvc.perform(get("/management/logs"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
+        restLogsMockMvc.perform(get("/management/logs")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
     }
 
     @Test
@@ -53,10 +49,7 @@ public class LogsResourceIntTest {
         logger.setLevel("INFO");
         logger.setName("ROOT");
 
-        restLogsMockMvc.perform(put("/management/logs")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(logger)))
-            .andExpect(status().isNoContent());
+        restLogsMockMvc.perform(put("/management/logs").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(logger))).andExpect(status().isNoContent());
     }
 
     @Test

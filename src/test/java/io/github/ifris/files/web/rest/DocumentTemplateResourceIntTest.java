@@ -1,20 +1,16 @@
 package io.github.ifris.files.web.rest;
 
 import io.github.ifris.files.FilingServiceApp;
-
 import io.github.ifris.files.config.SecurityBeanOverrideConfiguration;
-
 import io.github.ifris.files.domain.DocumentTemplate;
 import io.github.ifris.files.domain.IfrisModel;
 import io.github.ifris.files.repository.DocumentTemplateRepository;
 import io.github.ifris.files.repository.search.DocumentTemplateSearchRepository;
+import io.github.ifris.files.service.DocumentTemplateQueryService;
 import io.github.ifris.files.service.DocumentTemplateService;
 import io.github.ifris.files.service.dto.DocumentTemplateDTO;
 import io.github.ifris.files.service.mapper.DocumentTemplateMapper;
 import io.github.ifris.files.web.rest.errors.ExceptionTranslator;
-import io.github.ifris.files.service.dto.DocumentTemplateCriteria;
-import io.github.ifris.files.service.DocumentTemplateQueryService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,14 +35,20 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 
-
 import static io.github.ifris.files.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 import static org.hamcrest.Matchers.hasItem;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test class for the DocumentTemplateResource REST controller.
@@ -107,36 +109,33 @@ public class DocumentTemplateResourceIntTest {
 
     private DocumentTemplate documentTemplate;
 
-    @Before
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-        final DocumentTemplateResource documentTemplateResource = new DocumentTemplateResource(documentTemplateService, documentTemplateQueryService);
-        this.restDocumentTemplateMockMvc = MockMvcBuilders.standaloneSetup(documentTemplateResource)
-            .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
-            .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter)
-            .setValidator(validator).build();
-    }
-
     /**
      * Create an entity for this test.
-     *
-     * This is a static method, as tests for other entities might also need it,
-     * if they test an entity which requires the current entity.
+     * <p>
+     * This is a static method, as tests for other entities might also need it, if they test an entity which requires the current entity.
      */
     public static DocumentTemplate createEntity(EntityManager em) {
-        DocumentTemplate documentTemplate = new DocumentTemplate()
-            .dateCreated(DEFAULT_DATE_CREATED)
-            .updateDate(DEFAULT_UPDATE_DATE)
-            .templateFile(DEFAULT_TEMPLATE_FILE)
-            .templateFileContentType(DEFAULT_TEMPLATE_FILE_CONTENT_TYPE);
+        DocumentTemplate documentTemplate =
+            new DocumentTemplate().dateCreated(DEFAULT_DATE_CREATED).updateDate(DEFAULT_UPDATE_DATE).templateFile(DEFAULT_TEMPLATE_FILE).templateFileContentType(DEFAULT_TEMPLATE_FILE_CONTENT_TYPE);
         // Add required entity
         IfrisModel ifrisModel = IfrisModelResourceIntTest.createEntity(em);
         em.persist(ifrisModel);
         em.flush();
         documentTemplate.setIfrisModel(ifrisModel);
         return documentTemplate;
+    }
+
+    @Before
+    public void setup() {
+        MockitoAnnotations.initMocks(this);
+        final DocumentTemplateResource documentTemplateResource = new DocumentTemplateResource(documentTemplateService, documentTemplateQueryService);
+        this.restDocumentTemplateMockMvc = MockMvcBuilders.standaloneSetup(documentTemplateResource)
+                                                          .setCustomArgumentResolvers(pageableArgumentResolver)
+                                                          .setControllerAdvice(exceptionTranslator)
+                                                          .setConversionService(createFormattingConversionService())
+                                                          .setMessageConverters(jacksonMessageConverter)
+                                                          .setValidator(validator)
+                                                          .build();
     }
 
     @Before
@@ -151,10 +150,8 @@ public class DocumentTemplateResourceIntTest {
 
         // Create the DocumentTemplate
         DocumentTemplateDTO documentTemplateDTO = documentTemplateMapper.toDto(documentTemplate);
-        restDocumentTemplateMockMvc.perform(post("/api/document-templates")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(documentTemplateDTO)))
-            .andExpect(status().isCreated());
+        restDocumentTemplateMockMvc.perform(post("/api/document-templates").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(documentTemplateDTO)))
+                                   .andExpect(status().isCreated());
 
         // Validate the DocumentTemplate in the database
         List<DocumentTemplate> documentTemplateList = documentTemplateRepository.findAll();
@@ -179,10 +176,8 @@ public class DocumentTemplateResourceIntTest {
         DocumentTemplateDTO documentTemplateDTO = documentTemplateMapper.toDto(documentTemplate);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restDocumentTemplateMockMvc.perform(post("/api/document-templates")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(documentTemplateDTO)))
-            .andExpect(status().isBadRequest());
+        restDocumentTemplateMockMvc.perform(post("/api/document-templates").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(documentTemplateDTO)))
+                                   .andExpect(status().isBadRequest());
 
         // Validate the DocumentTemplate in the database
         List<DocumentTemplate> documentTemplateList = documentTemplateRepository.findAll();
@@ -200,15 +195,15 @@ public class DocumentTemplateResourceIntTest {
 
         // Get all the documentTemplateList
         restDocumentTemplateMockMvc.perform(get("/api/document-templates?sort=id,desc"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(documentTemplate.getId().intValue())))
-            .andExpect(jsonPath("$.[*].dateCreated").value(hasItem(DEFAULT_DATE_CREATED.toString())))
-            .andExpect(jsonPath("$.[*].updateDate").value(hasItem(DEFAULT_UPDATE_DATE.toString())))
-            .andExpect(jsonPath("$.[*].templateFileContentType").value(hasItem(DEFAULT_TEMPLATE_FILE_CONTENT_TYPE)))
-            .andExpect(jsonPath("$.[*].templateFile").value(hasItem(Base64Utils.encodeToString(DEFAULT_TEMPLATE_FILE))));
+                                   .andExpect(status().isOk())
+                                   .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                   .andExpect(jsonPath("$.[*].id").value(hasItem(documentTemplate.getId().intValue())))
+                                   .andExpect(jsonPath("$.[*].dateCreated").value(hasItem(DEFAULT_DATE_CREATED.toString())))
+                                   .andExpect(jsonPath("$.[*].updateDate").value(hasItem(DEFAULT_UPDATE_DATE.toString())))
+                                   .andExpect(jsonPath("$.[*].templateFileContentType").value(hasItem(DEFAULT_TEMPLATE_FILE_CONTENT_TYPE)))
+                                   .andExpect(jsonPath("$.[*].templateFile").value(hasItem(Base64Utils.encodeToString(DEFAULT_TEMPLATE_FILE))));
     }
-    
+
     @Test
     @Transactional
     public void getDocumentTemplate() throws Exception {
@@ -217,13 +212,13 @@ public class DocumentTemplateResourceIntTest {
 
         // Get the documentTemplate
         restDocumentTemplateMockMvc.perform(get("/api/document-templates/{id}", documentTemplate.getId()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.id").value(documentTemplate.getId().intValue()))
-            .andExpect(jsonPath("$.dateCreated").value(DEFAULT_DATE_CREATED.toString()))
-            .andExpect(jsonPath("$.updateDate").value(DEFAULT_UPDATE_DATE.toString()))
-            .andExpect(jsonPath("$.templateFileContentType").value(DEFAULT_TEMPLATE_FILE_CONTENT_TYPE))
-            .andExpect(jsonPath("$.templateFile").value(Base64Utils.encodeToString(DEFAULT_TEMPLATE_FILE)));
+                                   .andExpect(status().isOk())
+                                   .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                   .andExpect(jsonPath("$.id").value(documentTemplate.getId().intValue()))
+                                   .andExpect(jsonPath("$.dateCreated").value(DEFAULT_DATE_CREATED.toString()))
+                                   .andExpect(jsonPath("$.updateDate").value(DEFAULT_UPDATE_DATE.toString()))
+                                   .andExpect(jsonPath("$.templateFileContentType").value(DEFAULT_TEMPLATE_FILE_CONTENT_TYPE))
+                                   .andExpect(jsonPath("$.templateFile").value(Base64Utils.encodeToString(DEFAULT_TEMPLATE_FILE)));
     }
 
     @Test
@@ -381,19 +376,19 @@ public class DocumentTemplateResourceIntTest {
      */
     private void defaultDocumentTemplateShouldBeFound(String filter) throws Exception {
         restDocumentTemplateMockMvc.perform(get("/api/document-templates?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(documentTemplate.getId().intValue())))
-            .andExpect(jsonPath("$.[*].dateCreated").value(hasItem(DEFAULT_DATE_CREATED.toString())))
-            .andExpect(jsonPath("$.[*].updateDate").value(hasItem(DEFAULT_UPDATE_DATE.toString())))
-            .andExpect(jsonPath("$.[*].templateFileContentType").value(hasItem(DEFAULT_TEMPLATE_FILE_CONTENT_TYPE)))
-            .andExpect(jsonPath("$.[*].templateFile").value(hasItem(Base64Utils.encodeToString(DEFAULT_TEMPLATE_FILE))));
+                                   .andExpect(status().isOk())
+                                   .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                   .andExpect(jsonPath("$.[*].id").value(hasItem(documentTemplate.getId().intValue())))
+                                   .andExpect(jsonPath("$.[*].dateCreated").value(hasItem(DEFAULT_DATE_CREATED.toString())))
+                                   .andExpect(jsonPath("$.[*].updateDate").value(hasItem(DEFAULT_UPDATE_DATE.toString())))
+                                   .andExpect(jsonPath("$.[*].templateFileContentType").value(hasItem(DEFAULT_TEMPLATE_FILE_CONTENT_TYPE)))
+                                   .andExpect(jsonPath("$.[*].templateFile").value(hasItem(Base64Utils.encodeToString(DEFAULT_TEMPLATE_FILE))));
 
         // Check, that the count call also returns 1
         restDocumentTemplateMockMvc.perform(get("/api/document-templates/count?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(content().string("1"));
+                                   .andExpect(status().isOk())
+                                   .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                   .andExpect(content().string("1"));
     }
 
     /**
@@ -401,16 +396,16 @@ public class DocumentTemplateResourceIntTest {
      */
     private void defaultDocumentTemplateShouldNotBeFound(String filter) throws Exception {
         restDocumentTemplateMockMvc.perform(get("/api/document-templates?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$").isArray())
-            .andExpect(jsonPath("$").isEmpty());
+                                   .andExpect(status().isOk())
+                                   .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                   .andExpect(jsonPath("$").isArray())
+                                   .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
         restDocumentTemplateMockMvc.perform(get("/api/document-templates/count?sort=id,desc&" + filter))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(content().string("0"));
+                                   .andExpect(status().isOk())
+                                   .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                   .andExpect(content().string("0"));
     }
 
 
@@ -418,8 +413,7 @@ public class DocumentTemplateResourceIntTest {
     @Transactional
     public void getNonExistingDocumentTemplate() throws Exception {
         // Get the documentTemplate
-        restDocumentTemplateMockMvc.perform(get("/api/document-templates/{id}", Long.MAX_VALUE))
-            .andExpect(status().isNotFound());
+        restDocumentTemplateMockMvc.perform(get("/api/document-templates/{id}", Long.MAX_VALUE)).andExpect(status().isNotFound());
     }
 
     @Test
@@ -434,17 +428,11 @@ public class DocumentTemplateResourceIntTest {
         DocumentTemplate updatedDocumentTemplate = documentTemplateRepository.findById(documentTemplate.getId()).get();
         // Disconnect from session so that the updates on updatedDocumentTemplate are not directly saved in db
         em.detach(updatedDocumentTemplate);
-        updatedDocumentTemplate
-            .dateCreated(UPDATED_DATE_CREATED)
-            .updateDate(UPDATED_UPDATE_DATE)
-            .templateFile(UPDATED_TEMPLATE_FILE)
-            .templateFileContentType(UPDATED_TEMPLATE_FILE_CONTENT_TYPE);
+        updatedDocumentTemplate.dateCreated(UPDATED_DATE_CREATED).updateDate(UPDATED_UPDATE_DATE).templateFile(UPDATED_TEMPLATE_FILE).templateFileContentType(UPDATED_TEMPLATE_FILE_CONTENT_TYPE);
         DocumentTemplateDTO documentTemplateDTO = documentTemplateMapper.toDto(updatedDocumentTemplate);
 
-        restDocumentTemplateMockMvc.perform(put("/api/document-templates")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(documentTemplateDTO)))
-            .andExpect(status().isOk());
+        restDocumentTemplateMockMvc.perform(put("/api/document-templates").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(documentTemplateDTO)))
+                                   .andExpect(status().isOk());
 
         // Validate the DocumentTemplate in the database
         List<DocumentTemplate> documentTemplateList = documentTemplateRepository.findAll();
@@ -468,10 +456,8 @@ public class DocumentTemplateResourceIntTest {
         DocumentTemplateDTO documentTemplateDTO = documentTemplateMapper.toDto(documentTemplate);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restDocumentTemplateMockMvc.perform(put("/api/document-templates")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(documentTemplateDTO)))
-            .andExpect(status().isBadRequest());
+        restDocumentTemplateMockMvc.perform(put("/api/document-templates").contentType(TestUtil.APPLICATION_JSON_UTF8).content(TestUtil.convertObjectToJsonBytes(documentTemplateDTO)))
+                                   .andExpect(status().isBadRequest());
 
         // Validate the DocumentTemplate in the database
         List<DocumentTemplate> documentTemplateList = documentTemplateRepository.findAll();
@@ -490,9 +476,7 @@ public class DocumentTemplateResourceIntTest {
         int databaseSizeBeforeDelete = documentTemplateRepository.findAll().size();
 
         // Delete the documentTemplate
-        restDocumentTemplateMockMvc.perform(delete("/api/document-templates/{id}", documentTemplate.getId())
-            .accept(TestUtil.APPLICATION_JSON_UTF8))
-            .andExpect(status().isOk());
+        restDocumentTemplateMockMvc.perform(delete("/api/document-templates/{id}", documentTemplate.getId()).accept(TestUtil.APPLICATION_JSON_UTF8)).andExpect(status().isOk());
 
         // Validate the database is empty
         List<DocumentTemplate> documentTemplateList = documentTemplateRepository.findAll();
@@ -507,17 +491,17 @@ public class DocumentTemplateResourceIntTest {
     public void searchDocumentTemplate() throws Exception {
         // Initialize the database
         documentTemplateRepository.saveAndFlush(documentTemplate);
-        when(mockDocumentTemplateSearchRepository.search(queryStringQuery("id:" + documentTemplate.getId()), PageRequest.of(0, 20)))
-            .thenReturn(new PageImpl<>(Collections.singletonList(documentTemplate), PageRequest.of(0, 1), 1));
+        when(mockDocumentTemplateSearchRepository.search(queryStringQuery("id:" + documentTemplate.getId()), PageRequest.of(0, 20))).thenReturn(
+            new PageImpl<>(Collections.singletonList(documentTemplate), PageRequest.of(0, 1), 1));
         // Search the documentTemplate
         restDocumentTemplateMockMvc.perform(get("/api/_search/document-templates?query=id:" + documentTemplate.getId()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(documentTemplate.getId().intValue())))
-            .andExpect(jsonPath("$.[*].dateCreated").value(hasItem(DEFAULT_DATE_CREATED.toString())))
-            .andExpect(jsonPath("$.[*].updateDate").value(hasItem(DEFAULT_UPDATE_DATE.toString())))
-            .andExpect(jsonPath("$.[*].templateFileContentType").value(hasItem(DEFAULT_TEMPLATE_FILE_CONTENT_TYPE)))
-            .andExpect(jsonPath("$.[*].templateFile").value(hasItem(Base64Utils.encodeToString(DEFAULT_TEMPLATE_FILE))));
+                                   .andExpect(status().isOk())
+                                   .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                                   .andExpect(jsonPath("$.[*].id").value(hasItem(documentTemplate.getId().intValue())))
+                                   .andExpect(jsonPath("$.[*].dateCreated").value(hasItem(DEFAULT_DATE_CREATED.toString())))
+                                   .andExpect(jsonPath("$.[*].updateDate").value(hasItem(DEFAULT_UPDATE_DATE.toString())))
+                                   .andExpect(jsonPath("$.[*].templateFileContentType").value(hasItem(DEFAULT_TEMPLATE_FILE_CONTENT_TYPE)))
+                                   .andExpect(jsonPath("$.[*].templateFile").value(hasItem(Base64Utils.encodeToString(DEFAULT_TEMPLATE_FILE))));
     }
 
     @Test
