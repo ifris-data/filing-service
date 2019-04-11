@@ -48,6 +48,11 @@ spring:
                     brokers: localhost
                     zk-nodes: localhost
             bindings:
+                messageChannel:
+                            destination: uploadedDocuments
+                            content-type: application/json
+                subscribableChannel:
+                            destination: uploadedDocuments
                 output:
                     destination: topic-ifris
     datasource:

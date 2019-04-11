@@ -8,6 +8,7 @@
     <include file="config/liquibase/changelog/20190409140702_added_entity_IfrisModel.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20190409141314_added_entity_IfrisDocument.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20190409141818_added_entity_DocumentTemplate.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20190411145100_added_entity_UploadedDocument.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <include file="config/liquibase/changelog/20190409141314_added_entity_constraints_IfrisDocument.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20190409141818_added_entity_constraints_DocumentTemplate.xml" relativeToChangelogFile="false"/>

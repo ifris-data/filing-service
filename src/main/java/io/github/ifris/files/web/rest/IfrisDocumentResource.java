@@ -1,5 +1,7 @@
 package io.github.ifris.files.web.rest;
 
+import io.github.ifris.files.mq.UploadedDocumentDTO;
+import io.github.ifris.files.mq.UploadedDocumentProducerChannel;
 import io.github.ifris.files.service.IfrisDocumentQueryService;
 import io.github.ifris.files.service.IfrisDocumentService;
 import io.github.ifris.files.service.dto.IfrisDocumentCriteria;
@@ -14,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,15 +41,19 @@ import java.util.Optional;
 @RequestMapping("/api")
 public class IfrisDocumentResource {
 
+    private MessageChannel uploadedDocumentProducerChannel;
+
+
     private static final String ENTITY_NAME = "filingServiceIfrisDocument";
     private final Logger log = LoggerFactory.getLogger(IfrisDocumentResource.class);
     private final IfrisDocumentService ifrisDocumentService;
 
     private final IfrisDocumentQueryService ifrisDocumentQueryService;
 
-    public IfrisDocumentResource(IfrisDocumentService ifrisDocumentService, IfrisDocumentQueryService ifrisDocumentQueryService) {
+    public IfrisDocumentResource(IfrisDocumentService ifrisDocumentService, IfrisDocumentQueryService ifrisDocumentQueryService, UploadedDocumentProducerChannel producerChannel) {
         this.ifrisDocumentService = ifrisDocumentService;
         this.ifrisDocumentQueryService = ifrisDocumentQueryService;
+        this.uploadedDocumentProducerChannel = producerChannel.uploadedDocumentChannel();
     }
 
     /**
@@ -62,6 +70,13 @@ public class IfrisDocumentResource {
             throw new BadRequestAlertException("A new ifrisDocument cannot already have an ID", ENTITY_NAME, "idexists");
         }
         IfrisDocumentDTO result = ifrisDocumentService.save(ifrisDocumentDTO);
+
+        UploadedDocumentDTO documentDTO = new UploadedDocumentDTO();
+        documentDTO.setFileName(ifrisDocumentDTO.getFileName());
+        // send message to channel
+        uploadedDocumentProducerChannel.send(
+            MessageBuilder.withPayload(documentDTO).build());
+
         return ResponseEntity.created(new URI("/api/ifris-documents/" + result.getId())).headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
     }
 
