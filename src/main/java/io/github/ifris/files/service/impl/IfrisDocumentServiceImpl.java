@@ -1,14 +1,13 @@
 package io.github.ifris.files.service.impl;
 
-import io.github.ifris.files.service.IfrisDocumentService;
 import io.github.ifris.files.domain.IfrisDocument;
 import io.github.ifris.files.repository.IfrisDocumentRepository;
 import io.github.ifris.files.repository.search.IfrisDocumentSearchRepository;
+import io.github.ifris.files.service.IfrisDocumentService;
 import io.github.ifris.files.service.dto.IfrisDocumentDTO;
 import io.github.ifris.files.service.mapper.IfrisDocumentMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 /**
  * Service Implementation for managing IfrisDocument.
@@ -65,8 +64,7 @@ public class IfrisDocumentServiceImpl implements IfrisDocumentService {
     @Transactional(readOnly = true)
     public Page<IfrisDocumentDTO> findAll(Pageable pageable) {
         log.debug("Request to get all IfrisDocuments");
-        return ifrisDocumentRepository.findAll(pageable)
-            .map(ifrisDocumentMapper::toDto);
+        return ifrisDocumentRepository.findAll(pageable).map(ifrisDocumentMapper::toDto);
     }
 
 
@@ -80,8 +78,7 @@ public class IfrisDocumentServiceImpl implements IfrisDocumentService {
     @Transactional(readOnly = true)
     public Optional<IfrisDocumentDTO> findOne(Long id) {
         log.debug("Request to get IfrisDocument : {}", id);
-        return ifrisDocumentRepository.findById(id)
-            .map(ifrisDocumentMapper::toDto);
+        return ifrisDocumentRepository.findById(id).map(ifrisDocumentMapper::toDto);
     }
 
     /**
@@ -99,7 +96,7 @@ public class IfrisDocumentServiceImpl implements IfrisDocumentService {
     /**
      * Search for the ifrisDocument corresponding to the query.
      *
-     * @param query the query of the search
+     * @param query    the query of the search
      * @param pageable the pagination information
      * @return the list of entities
      */
@@ -107,7 +104,6 @@ public class IfrisDocumentServiceImpl implements IfrisDocumentService {
     @Transactional(readOnly = true)
     public Page<IfrisDocumentDTO> search(String query, Pageable pageable) {
         log.debug("Request to search for a page of IfrisDocuments for query {}", query);
-        return ifrisDocumentSearchRepository.search(queryStringQuery(query), pageable)
-            .map(ifrisDocumentMapper::toDto);
+        return ifrisDocumentSearchRepository.search(queryStringQuery(query), pageable).map(ifrisDocumentMapper::toDto);
     }
 }

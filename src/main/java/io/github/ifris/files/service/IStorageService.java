@@ -10,14 +10,11 @@ public interface IStorageService {
 
     /**
      * Save a file
-     * @param file
      */
     void store(MultipartFile file);
 
     /**
      * Load a file
-     * @param filename
-     * @return
      */
     Resource loadFile(String filename);
 

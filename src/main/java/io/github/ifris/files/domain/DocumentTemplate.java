@@ -4,11 +4,17 @@ package io.github.ifris.files.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-import javax.persistence.*;
-import javax.validation.constraints.*;
-
 import org.springframework.data.elasticsearch.annotations.Document;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -23,7 +29,7 @@ import java.util.Objects;
 public class DocumentTemplate implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,7 +40,7 @@ public class DocumentTemplate implements Serializable {
     @Column(name = "update_date")
     private LocalDate updateDate;
 
-    
+
     @Lob
     @Column(name = "template_file", nullable = false)
     private byte[] templateFile;
@@ -60,17 +66,21 @@ public class DocumentTemplate implements Serializable {
         return dateCreated;
     }
 
+    public void setDateCreated(LocalDate dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
     public DocumentTemplate dateCreated(LocalDate dateCreated) {
         this.dateCreated = dateCreated;
         return this;
     }
 
-    public void setDateCreated(LocalDate dateCreated) {
-        this.dateCreated = dateCreated;
-    }
-
     public LocalDate getUpdateDate() {
         return updateDate;
+    }
+
+    public void setUpdateDate(LocalDate updateDate) {
+        this.updateDate = updateDate;
     }
 
     public DocumentTemplate updateDate(LocalDate updateDate) {
@@ -78,12 +88,12 @@ public class DocumentTemplate implements Serializable {
         return this;
     }
 
-    public void setUpdateDate(LocalDate updateDate) {
-        this.updateDate = updateDate;
-    }
-
     public byte[] getTemplateFile() {
         return templateFile;
+    }
+
+    public void setTemplateFile(byte[] templateFile) {
+        this.templateFile = templateFile;
     }
 
     public DocumentTemplate templateFile(byte[] templateFile) {
@@ -91,12 +101,12 @@ public class DocumentTemplate implements Serializable {
         return this;
     }
 
-    public void setTemplateFile(byte[] templateFile) {
-        this.templateFile = templateFile;
-    }
-
     public String getTemplateFileContentType() {
         return templateFileContentType;
+    }
+
+    public void setTemplateFileContentType(String templateFileContentType) {
+        this.templateFileContentType = templateFileContentType;
     }
 
     public DocumentTemplate templateFileContentType(String templateFileContentType) {
@@ -104,21 +114,17 @@ public class DocumentTemplate implements Serializable {
         return this;
     }
 
-    public void setTemplateFileContentType(String templateFileContentType) {
-        this.templateFileContentType = templateFileContentType;
-    }
-
     public IfrisModel getIfrisModel() {
         return ifrisModel;
+    }
+
+    public void setIfrisModel(IfrisModel ifrisModel) {
+        this.ifrisModel = ifrisModel;
     }
 
     public DocumentTemplate ifrisModel(IfrisModel ifrisModel) {
         this.ifrisModel = ifrisModel;
         return this;
-    }
-
-    public void setIfrisModel(IfrisModel ifrisModel) {
-        this.ifrisModel = ifrisModel;
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
@@ -144,12 +150,7 @@ public class DocumentTemplate implements Serializable {
 
     @Override
     public String toString() {
-        return "DocumentTemplate{" +
-            "id=" + getId() +
-            ", dateCreated='" + getDateCreated() + "'" +
-            ", updateDate='" + getUpdateDate() + "'" +
-            ", templateFile='" + getTemplateFile() + "'" +
-            ", templateFileContentType='" + getTemplateFileContentType() + "'" +
-            "}";
+        return "DocumentTemplate{" + "id=" + getId() + ", dateCreated='" + getDateCreated() + "'" + ", updateDate='" + getUpdateDate() + "'" + ", templateFile='" + getTemplateFile() + "'" +
+            ", templateFileContentType='" + getTemplateFileContentType() + "'" + "}";
     }
 }

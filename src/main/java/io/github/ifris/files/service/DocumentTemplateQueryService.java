@@ -1,9 +1,14 @@
 package io.github.ifris.files.service;
 
-import java.util.List;
-
-import javax.persistence.criteria.JoinType;
-
+import io.github.ifris.files.domain.DocumentTemplate;
+import io.github.ifris.files.domain.DocumentTemplate_;
+import io.github.ifris.files.domain.IfrisModel_;
+import io.github.ifris.files.repository.DocumentTemplateRepository;
+import io.github.ifris.files.repository.search.DocumentTemplateSearchRepository;
+import io.github.ifris.files.service.dto.DocumentTemplateCriteria;
+import io.github.ifris.files.service.dto.DocumentTemplateDTO;
+import io.github.ifris.files.service.mapper.DocumentTemplateMapper;
+import io.github.jhipster.service.QueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -12,21 +17,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import io.github.jhipster.service.QueryService;
-
-import io.github.ifris.files.domain.DocumentTemplate;
-import io.github.ifris.files.domain.*; // for static metamodels
-import io.github.ifris.files.repository.DocumentTemplateRepository;
-import io.github.ifris.files.repository.search.DocumentTemplateSearchRepository;
-import io.github.ifris.files.service.dto.DocumentTemplateCriteria;
-import io.github.ifris.files.service.dto.DocumentTemplateDTO;
-import io.github.ifris.files.service.mapper.DocumentTemplateMapper;
+import javax.persistence.criteria.JoinType;
+import java.util.List;
 
 /**
- * Service for executing complex queries for DocumentTemplate entities in the database.
- * The main input is a {@link DocumentTemplateCriteria} which gets converted to {@link Specification},
- * in a way that all the filters must apply.
- * It returns a {@link List} of {@link DocumentTemplateDTO} or a {@link Page} of {@link DocumentTemplateDTO} which fulfills the criteria.
+ * Service for executing complex queries for DocumentTemplate entities in the database. The main input is a {@link DocumentTemplateCriteria} which gets converted to {@link Specification}, in a way
+ * that all the filters must apply. It returns a {@link List} of {@link DocumentTemplateDTO} or a {@link Page} of {@link DocumentTemplateDTO} which fulfills the criteria.
  */
 @Service
 @Transactional(readOnly = true)
@@ -40,7 +36,8 @@ public class DocumentTemplateQueryService extends QueryService<DocumentTemplate>
 
     private final DocumentTemplateSearchRepository documentTemplateSearchRepository;
 
-    public DocumentTemplateQueryService(DocumentTemplateRepository documentTemplateRepository, DocumentTemplateMapper documentTemplateMapper, DocumentTemplateSearchRepository documentTemplateSearchRepository) {
+    public DocumentTemplateQueryService(DocumentTemplateRepository documentTemplateRepository, DocumentTemplateMapper documentTemplateMapper,
+                                        DocumentTemplateSearchRepository documentTemplateSearchRepository) {
         this.documentTemplateRepository = documentTemplateRepository;
         this.documentTemplateMapper = documentTemplateMapper;
         this.documentTemplateSearchRepository = documentTemplateSearchRepository;
@@ -48,6 +45,7 @@ public class DocumentTemplateQueryService extends QueryService<DocumentTemplate>
 
     /**
      * Return a {@link List} of {@link DocumentTemplateDTO} which matches the criteria from the database
+     *
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
@@ -60,20 +58,21 @@ public class DocumentTemplateQueryService extends QueryService<DocumentTemplate>
 
     /**
      * Return a {@link Page} of {@link DocumentTemplateDTO} which matches the criteria from the database
+     *
      * @param criteria The object which holds all the filters, which the entities should match.
-     * @param page The page, which should be returned.
+     * @param page     The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
     public Page<DocumentTemplateDTO> findByCriteria(DocumentTemplateCriteria criteria, Pageable page) {
         log.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<DocumentTemplate> specification = createSpecification(criteria);
-        return documentTemplateRepository.findAll(specification, page)
-            .map(documentTemplateMapper::toDto);
+        return documentTemplateRepository.findAll(specification, page).map(documentTemplateMapper::toDto);
     }
 
     /**
      * Return the number of matching entities in the database
+     *
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the number of matching entities.
      */
@@ -100,8 +99,7 @@ public class DocumentTemplateQueryService extends QueryService<DocumentTemplate>
                 specification = specification.and(buildRangeSpecification(criteria.getUpdateDate(), DocumentTemplate_.updateDate));
             }
             if (criteria.getIfrisModelId() != null) {
-                specification = specification.and(buildSpecification(criteria.getIfrisModelId(),
-                    root -> root.join(DocumentTemplate_.ifrisModel, JoinType.LEFT).get(IfrisModel_.id)));
+                specification = specification.and(buildSpecification(criteria.getIfrisModelId(), root -> root.join(DocumentTemplate_.ifrisModel, JoinType.LEFT).get(IfrisModel_.id)));
             }
         }
         return specification;

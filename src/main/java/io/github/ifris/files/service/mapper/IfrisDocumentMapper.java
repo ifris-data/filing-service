@@ -1,9 +1,9 @@
 package io.github.ifris.files.service.mapper;
 
-import io.github.ifris.files.domain.*;
+import io.github.ifris.files.domain.IfrisDocument;
 import io.github.ifris.files.service.dto.IfrisDocumentDTO;
-
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
  * Mapper for the entity IfrisDocument and its DTO IfrisDocumentDTO.

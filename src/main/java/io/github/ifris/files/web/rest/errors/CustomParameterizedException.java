@@ -8,13 +8,12 @@ import java.util.Map;
 import static org.zalando.problem.Status.BAD_REQUEST;
 
 /**
- * Custom, parameterized exception, which can be translated on the client side.
- * For example:
+ * Custom, parameterized exception, which can be translated on the client side. For example:
  *
  * <pre>
  * throw new CustomParameterizedException(&quot;myCustomError&quot;, &quot;hello&quot;, &quot;world&quot;);
  * </pre>
- *
+ * <p>
  * Can be translated with:
  *
  * <pre>

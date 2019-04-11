@@ -25,30 +25,27 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class UploadsController {
 
+    List<String> files = new ArrayList<>();
     @Autowired
     private IStorageService fileStorageService;
 
-    List<String> files = new ArrayList<>();
-
     /**
      * GET /api/upload
-     *
+     * <p>
      * Upload file from the client API
-     * @param file
-     * @return
      */
     @PostMapping("/upload")
-    public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file){
+    public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file) {
 
         String message = "";
 
         try {
             fileStorageService.store(file);
             files.add(file.getOriginalFilename());
-            message = "Looking good! The file too... You have uploaded "+file.getOriginalFilename() + "!";
+            message = "Looking good! The file too... You have uploaded " + file.getOriginalFilename() + "!";
             return ResponseEntity.status(HttpStatus.OK).body(message);
-        } catch (Exception e){
-            message = "Well! That's embarrasing! We've failed to upload "+file.getOriginalFilename()+"!";
+        } catch (Exception e) {
+            message = "Well! That's embarrasing! We've failed to upload " + file.getOriginalFilename() + "!";
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(message);
         }
     }
@@ -56,18 +53,13 @@ public class UploadsController {
 
     /**
      * GET /api/files
-     *
+     * <p>
      * load files from storage
-     * @param ui
-     * @return
      */
     @GetMapping("/files")
-    public ResponseEntity<List<String>> getListOfFiles(Model ui){
+    public ResponseEntity<List<String>> getListOfFiles(Model ui) {
 
-        List<String> fileNames = files
-            .stream().map(fileName -> MvcUriComponentsBuilder
-                .fromMethodName(UploadsController.class, "getFile", fileName).build().toString())
-            .collect(Collectors.toList());
+        List<String> fileNames = files.stream().map(fileName -> MvcUriComponentsBuilder.fromMethodName(UploadsController.class, "getFile", fileName).build().toString()).collect(Collectors.toList());
 
         return ResponseEntity.ok().body(fileNames);
     }
@@ -75,17 +67,13 @@ public class UploadsController {
 
     /**
      * GET /api/files/{filename:.+}
-     *
+     * <p>
      * load file from storage
-     * @param filename
-     * @return
      */
     @GetMapping("/files/{filename:.+}")
     @ResponseBody
-    public ResponseEntity<Resource> getFile(@PathVariable String filename){
+    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
         Resource file = fileStorageService.loadFile(filename);
-        return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename()+"\"")
-            .body(file);
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
 }

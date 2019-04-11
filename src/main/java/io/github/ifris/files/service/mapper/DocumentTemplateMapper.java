@@ -1,9 +1,9 @@
 package io.github.ifris.files.service.mapper;
 
-import io.github.ifris.files.domain.*;
+import io.github.ifris.files.domain.DocumentTemplate;
 import io.github.ifris.files.service.dto.DocumentTemplateDTO;
-
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
  * Mapper for the entity DocumentTemplate and its DTO DocumentTemplateDTO.

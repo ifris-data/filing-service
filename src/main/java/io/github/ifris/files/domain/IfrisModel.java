@@ -1,18 +1,22 @@
 package io.github.ifris.files.domain;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-import javax.persistence.*;
-import javax.validation.constraints.*;
-
 import org.springframework.data.elasticsearch.annotations.Document;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A IfrisModel.
@@ -24,7 +28,7 @@ import java.util.Objects;
 public class IfrisModel implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -49,6 +53,7 @@ public class IfrisModel implements Serializable {
     @OneToMany(mappedBy = "ifrisModel")
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<DocumentTemplate> documentTemplates = new HashSet<>();
+
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
@@ -62,17 +67,21 @@ public class IfrisModel implements Serializable {
         return modelName;
     }
 
+    public void setModelName(String modelName) {
+        this.modelName = modelName;
+    }
+
     public IfrisModel modelName(String modelName) {
         this.modelName = modelName;
         return this;
     }
 
-    public void setModelName(String modelName) {
-        this.modelName = modelName;
-    }
-
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public IfrisModel description(String description) {
@@ -80,12 +89,12 @@ public class IfrisModel implements Serializable {
         return this;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getServiceName() {
         return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
     public IfrisModel serviceName(String serviceName) {
@@ -93,12 +102,12 @@ public class IfrisModel implements Serializable {
         return this;
     }
 
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
-
     public String getServicePort() {
         return servicePort;
+    }
+
+    public void setServicePort(String servicePort) {
+        this.servicePort = servicePort;
     }
 
     public IfrisModel servicePort(String servicePort) {
@@ -106,12 +115,12 @@ public class IfrisModel implements Serializable {
         return this;
     }
 
-    public void setServicePort(String servicePort) {
-        this.servicePort = servicePort;
-    }
-
     public Set<IfrisDocument> getIfrisDocuments() {
         return ifrisDocuments;
+    }
+
+    public void setIfrisDocuments(Set<IfrisDocument> ifrisDocuments) {
+        this.ifrisDocuments = ifrisDocuments;
     }
 
     public IfrisModel ifrisDocuments(Set<IfrisDocument> ifrisDocuments) {
@@ -131,12 +140,12 @@ public class IfrisModel implements Serializable {
         return this;
     }
 
-    public void setIfrisDocuments(Set<IfrisDocument> ifrisDocuments) {
-        this.ifrisDocuments = ifrisDocuments;
-    }
-
     public Set<DocumentTemplate> getDocumentTemplates() {
         return documentTemplates;
+    }
+
+    public void setDocumentTemplates(Set<DocumentTemplate> documentTemplates) {
+        this.documentTemplates = documentTemplates;
     }
 
     public IfrisModel documentTemplates(Set<DocumentTemplate> documentTemplates) {
@@ -154,10 +163,6 @@ public class IfrisModel implements Serializable {
         this.documentTemplates.remove(documentTemplate);
         documentTemplate.setIfrisModel(null);
         return this;
-    }
-
-    public void setDocumentTemplates(Set<DocumentTemplate> documentTemplates) {
-        this.documentTemplates = documentTemplates;
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
@@ -183,12 +188,7 @@ public class IfrisModel implements Serializable {
 
     @Override
     public String toString() {
-        return "IfrisModel{" +
-            "id=" + getId() +
-            ", modelName='" + getModelName() + "'" +
-            ", description='" + getDescription() + "'" +
-            ", serviceName='" + getServiceName() + "'" +
-            ", servicePort='" + getServicePort() + "'" +
-            "}";
+        return "IfrisModel{" + "id=" + getId() + ", modelName='" + getModelName() + "'" + ", description='" + getDescription() + "'" + ", serviceName='" + getServiceName() + "'" + ", servicePort='" +
+            getServicePort() + "'" + "}";
     }
 }

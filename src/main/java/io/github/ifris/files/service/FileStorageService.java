@@ -23,8 +23,6 @@ public class FileStorageService implements IStorageService {
 
     /**
      * Save a file
-     *
-     * @param file
      */
     @Override
     public void store(MultipartFile file) {
@@ -41,9 +39,6 @@ public class FileStorageService implements IStorageService {
 
     /**
      * Load a file
-     *
-     * @param filename
-     * @return
      */
     @Override
     public Resource loadFile(String filename) {
@@ -54,7 +49,7 @@ public class FileStorageService implements IStorageService {
         try {
             Resource resource = new UrlResource(file.toUri());
 
-            if (resource.exists() || resource.isReadable()){
+            if (resource.exists() || resource.isReadable()) {
                 return resource;
             } else {
                 throw new RuntimeException("The requested file does not exist or is unreadable");

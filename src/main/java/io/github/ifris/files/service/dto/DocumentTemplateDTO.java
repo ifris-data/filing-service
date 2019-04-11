@@ -1,9 +1,9 @@
 package io.github.ifris.files.service.dto;
-import java.time.LocalDate;
-import javax.validation.constraints.*;
-import java.io.Serializable;
-import java.util.Objects;
+
 import javax.persistence.Lob;
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.Objects;
 
 /**
  * A DTO for the DocumentTemplate entity.
@@ -16,7 +16,7 @@ public class DocumentTemplateDTO implements Serializable {
 
     private LocalDate updateDate;
 
-    
+
     @Lob
     private byte[] templateFile;
 
@@ -105,13 +105,7 @@ public class DocumentTemplateDTO implements Serializable {
 
     @Override
     public String toString() {
-        return "DocumentTemplateDTO{" +
-            "id=" + getId() +
-            ", dateCreated='" + getDateCreated() + "'" +
-            ", updateDate='" + getUpdateDate() + "'" +
-            ", templateFile='" + getTemplateFile() + "'" +
-            ", ifrisModel=" + getIfrisModelId() +
-            ", ifrisModel='" + getIfrisModelModelName() + "'" +
-            "}";
+        return "DocumentTemplateDTO{" + "id=" + getId() + ", dateCreated='" + getDateCreated() + "'" + ", updateDate='" + getUpdateDate() + "'" + ", templateFile='" + getTemplateFile() + "'" +
+            ", ifrisModel=" + getIfrisModelId() + ", ifrisModel='" + getIfrisModelModelName() + "'" + "}";
     }
 }

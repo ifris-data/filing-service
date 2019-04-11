@@ -1,5 +1,6 @@
 package io.github.ifris.files.service.dto;
-import javax.validation.constraints.*;
+
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -84,12 +85,7 @@ public class IfrisModelDTO implements Serializable {
 
     @Override
     public String toString() {
-        return "IfrisModelDTO{" +
-            "id=" + getId() +
-            ", modelName='" + getModelName() + "'" +
-            ", description='" + getDescription() + "'" +
-            ", serviceName='" + getServiceName() + "'" +
-            ", servicePort='" + getServicePort() + "'" +
-            "}";
+        return "IfrisModelDTO{" + "id=" + getId() + ", modelName='" + getModelName() + "'" + ", description='" + getDescription() + "'" + ", serviceName='" + getServiceName() + "'" +
+            ", servicePort='" + getServicePort() + "'" + "}";
     }
 }

@@ -5,8 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.jwt.crypto.sign.SignatureVerifier;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 
 import java.util.Map;
 
@@ -30,9 +30,8 @@ public class OAuth2JwtAccessTokenConverter extends JwtAccessTokenConverter {
     }
 
     /**
-     * Try to decode the token with the current public key.
-     * If it fails, contact the OAuth2 server to get a new public key, then try again.
-     * We might not have fetched it in the first place or it might have changed.
+     * Try to decode the token with the current public key. If it fails, contact the OAuth2 server to get a new public key, then try again. We might not have fetched it in the first place or it might
+     * have changed.
      *
      * @param token the JWT token to decode.
      * @return the resulting claims.
@@ -78,9 +77,9 @@ public class OAuth2JwtAccessTokenConverter extends JwtAccessTokenConverter {
         }
         return false;
     }
+
     /**
-     * Extract JWT claims and set it to OAuth2Authentication decoded details.
-     * Here is how to get details:
+     * Extract JWT claims and set it to OAuth2Authentication decoded details. Here is how to get details:
      *
      * <pre>
      * <code>
@@ -97,6 +96,7 @@ public class OAuth2JwtAccessTokenConverter extends JwtAccessTokenConverter {
      *  }
      * </code>
      *  </pre>
+     *
      * @param claims OAuth2JWTToken claims
      * @return OAuth2Authentication
      */

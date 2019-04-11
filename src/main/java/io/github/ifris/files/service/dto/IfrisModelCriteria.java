@@ -1,22 +1,17 @@
 package io.github.ifris.files.service.dto;
 
-import java.io.Serializable;
-import java.util.Objects;
-import io.github.jhipster.service.filter.BooleanFilter;
-import io.github.jhipster.service.filter.DoubleFilter;
 import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.FloatFilter;
-import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
 
+import java.io.Serializable;
+import java.util.Objects;
+
 /**
- * Criteria class for the IfrisModel entity. This class is used in IfrisModelResource to
- * receive all the possible filtering options from the Http GET request parameters.
- * For example the following could be a valid requests:
+ * Criteria class for the IfrisModel entity. This class is used in IfrisModelResource to receive all the possible filtering options from the Http GET request parameters. For example the following
+ * could be a valid requests:
  * <code> /ifris-models?id.greaterThan=5&amp;attr1.contains=something&amp;attr2.specified=false</code>
- * As Spring is unable to properly convert the types, unless specific {@link Filter} class are used, we need to use
- * fix type specific filters.
+ * As Spring is unable to properly convert the types, unless specific {@link Filter} class are used, we need to use fix type specific filters.
  */
 public class IfrisModelCriteria implements Serializable {
 
@@ -102,40 +97,21 @@ public class IfrisModelCriteria implements Serializable {
             return false;
         }
         final IfrisModelCriteria that = (IfrisModelCriteria) o;
-        return
-            Objects.equals(id, that.id) &&
-            Objects.equals(modelName, that.modelName) &&
-            Objects.equals(description, that.description) &&
-            Objects.equals(serviceName, that.serviceName) &&
-            Objects.equals(servicePort, that.servicePort) &&
-            Objects.equals(ifrisDocumentId, that.ifrisDocumentId) &&
-            Objects.equals(documentTemplateId, that.documentTemplateId);
+        return Objects.equals(id, that.id) && Objects.equals(modelName, that.modelName) && Objects.equals(description, that.description) && Objects.equals(serviceName, that.serviceName) &&
+            Objects.equals(servicePort, that.servicePort) && Objects.equals(ifrisDocumentId, that.ifrisDocumentId) && Objects.equals(documentTemplateId, that.documentTemplateId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-        id,
-        modelName,
-        description,
-        serviceName,
-        servicePort,
-        ifrisDocumentId,
-        documentTemplateId
-        );
+        return Objects.hash(id, modelName, description, serviceName, servicePort, ifrisDocumentId, documentTemplateId);
     }
 
     @Override
     public String toString() {
-        return "IfrisModelCriteria{" +
-                (id != null ? "id=" + id + ", " : "") +
-                (modelName != null ? "modelName=" + modelName + ", " : "") +
-                (description != null ? "description=" + description + ", " : "") +
-                (serviceName != null ? "serviceName=" + serviceName + ", " : "") +
-                (servicePort != null ? "servicePort=" + servicePort + ", " : "") +
-                (ifrisDocumentId != null ? "ifrisDocumentId=" + ifrisDocumentId + ", " : "") +
-                (documentTemplateId != null ? "documentTemplateId=" + documentTemplateId + ", " : "") +
-            "}";
+        return "IfrisModelCriteria{" + (id != null ? "id=" + id + ", " : "") + (modelName != null ? "modelName=" + modelName + ", " : "") +
+            (description != null ? "description=" + description + ", " : "") + (serviceName != null ? "serviceName=" + serviceName + ", " : "") +
+            (servicePort != null ? "servicePort=" + servicePort + ", " : "") + (ifrisDocumentId != null ? "ifrisDocumentId=" + ifrisDocumentId + ", " : "") +
+            (documentTemplateId != null ? "documentTemplateId=" + documentTemplateId + ", " : "") + "}";
     }
 
 }

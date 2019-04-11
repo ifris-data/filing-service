@@ -1,9 +1,10 @@
 package io.github.ifris.files.service.dto;
-import java.time.LocalDate;
-import javax.validation.constraints.*;
-import java.io.Serializable;
-import java.util.Objects;
+
 import javax.persistence.Lob;
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.Objects;
 
 /**
  * A DTO for the IfrisDocument entity.
@@ -26,7 +27,7 @@ public class IfrisDocumentDTO implements Serializable {
     @NotNull
     private LocalDate periodEnd;
 
-    
+
     @Lob
     private byte[] content;
 
@@ -139,16 +140,8 @@ public class IfrisDocumentDTO implements Serializable {
 
     @Override
     public String toString() {
-        return "IfrisDocumentDTO{" +
-            "id=" + getId() +
-            ", fileName='" + getFileName() + "'" +
-            ", year=" + getYear() +
-            ", description='" + getDescription() + "'" +
-            ", periodStart='" + getPeriodStart() + "'" +
-            ", periodEnd='" + getPeriodEnd() + "'" +
-            ", content='" + getContent() + "'" +
-            ", ifrisModel=" + getIfrisModelId() +
-            ", ifrisModel='" + getIfrisModelModelName() + "'" +
-            "}";
+        return "IfrisDocumentDTO{" + "id=" + getId() + ", fileName='" + getFileName() + "'" + ", year=" + getYear() + ", description='" + getDescription() + "'" + ", periodStart='" +
+            getPeriodStart() + "'" + ", periodEnd='" + getPeriodEnd() + "'" + ", content='" + getContent() + "'" + ", ifrisModel=" + getIfrisModelId() + ", ifrisModel='" + getIfrisModelModelName() +
+            "'" + "}";
     }
 }
