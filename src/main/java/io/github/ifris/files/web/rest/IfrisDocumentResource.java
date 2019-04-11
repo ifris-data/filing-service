@@ -56,8 +56,8 @@ public class IfrisDocumentResource {
     private MessageChannel uploadedDocumentProducerChannel;
 
     @Autowired
-    public IfrisDocumentResource(IfrisDocumentService ifrisDocumentService, IfrisDocumentQueryService ifrisDocumentQueryService, UploadedDocumentProducerChannel producerChannel,
-                                 final UploadedDocumentService uploadedDocumentService) {
+    public IfrisDocumentResource(IfrisDocumentService ifrisDocumentService, IfrisDocumentQueryService ifrisDocumentQueryService,
+                                 final UploadedDocumentService uploadedDocumentService, UploadedDocumentProducerChannel producerChannel) {
         this.ifrisDocumentService = ifrisDocumentService;
         this.ifrisDocumentQueryService = ifrisDocumentQueryService;
         this.uploadedDocumentProducerChannel = producerChannel.uploadedDocumentChannel();

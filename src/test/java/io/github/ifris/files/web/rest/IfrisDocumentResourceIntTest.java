@@ -4,11 +4,14 @@ import io.github.ifris.files.FilingServiceApp;
 import io.github.ifris.files.config.SecurityBeanOverrideConfiguration;
 import io.github.ifris.files.domain.IfrisDocument;
 import io.github.ifris.files.domain.IfrisModel;
+import io.github.ifris.files.mq.UploadedDocumentProducerChannel;
 import io.github.ifris.files.repository.IfrisDocumentRepository;
 import io.github.ifris.files.repository.search.IfrisDocumentSearchRepository;
 import io.github.ifris.files.service.IfrisDocumentQueryService;
 import io.github.ifris.files.service.IfrisDocumentService;
+import io.github.ifris.files.service.UploadedDocumentService;
 import io.github.ifris.files.service.dto.IfrisDocumentDTO;
+import io.github.ifris.files.service.impl.UploadedDocumentServiceImpl;
 import io.github.ifris.files.service.mapper.IfrisDocumentMapper;
 import io.github.ifris.files.web.rest.errors.ExceptionTranslator;
 import org.junit.Before;
@@ -118,6 +121,12 @@ public class IfrisDocumentResourceIntTest {
 
     private IfrisDocument ifrisDocument;
 
+    @Autowired
+    private UploadedDocumentProducerChannel producerChannel;
+    @Autowired
+    private UploadedDocumentService uploadedDocumentService;
+
+
     /**
      * Create an entity for this test.
      * <p>
@@ -142,7 +151,9 @@ public class IfrisDocumentResourceIntTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final IfrisDocumentResource ifrisDocumentResource = new IfrisDocumentResource(ifrisDocumentService, ifrisDocumentQueryService);
+        final IfrisDocumentResource ifrisDocumentResource = new IfrisDocumentResource(ifrisDocumentService, ifrisDocumentQueryService, uploadedDocumentService, producerChannel);
+
+
         this.restIfrisDocumentMockMvc = MockMvcBuilders.standaloneSetup(ifrisDocumentResource)
                                                        .setCustomArgumentResolvers(pageableArgumentResolver)
                                                        .setControllerAdvice(exceptionTranslator)
