@@ -3,6 +3,7 @@ package io.github.ifris.files.web.rest;
 import io.github.ifris.files.mq.UploadedDocumentProducerChannel;
 import io.github.ifris.files.service.IfrisDocumentQueryService;
 import io.github.ifris.files.service.IfrisDocumentService;
+import io.github.ifris.files.service.IfrisModelService;
 import io.github.ifris.files.service.UploadedDocumentService;
 import io.github.ifris.files.service.dto.IfrisDocumentCriteria;
 import io.github.ifris.files.service.dto.IfrisDocumentDTO;
@@ -48,6 +49,9 @@ public class IfrisDocumentResource {
     @Value("${eureka.instance.instanceId:JhipsterService}")
     private String instanceName;
 
+    @Autowired
+    private IfrisModelService ifrisModelService;
+
     private final UploadedDocumentService uploadedDocumentService;
     private static final String ENTITY_NAME = "filingServiceIfrisDocument";
     private final Logger log = LoggerFactory.getLogger(IfrisDocumentResource.class);
@@ -79,7 +83,7 @@ public class IfrisDocumentResource {
         }
         IfrisDocumentDTO result = ifrisDocumentService.save(ifrisDocumentDTO);
 
-        trackDocument(ifrisDocumentDTO);
+        trackDocument(result);
 
         return ResponseEntity.created(new URI("/api/ifris-documents/" + result.getId())).headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString())).body(result);
     }
@@ -97,8 +101,11 @@ public class IfrisDocumentResource {
         documentDTO.setYear(ifrisDocumentDTO.getYear().toString());
         documentDTO.setPeriodStart(ifrisDocumentDTO.getPeriodStart().format(DateTimeFormatter.ISO_DATE));
         documentDTO.setPeriodEnd(ifrisDocumentDTO.getPeriodEnd().format(DateTimeFormatter.ISO_DATE));
-        documentDTO.setContentType(ifrisDocumentDTO.getContentContentType());
         documentDTO.setAppInstance(instanceName);
+        //documentDTO.setIfrisModel(ifrisDocumentDTO.getIfrisModelModelName());
+        documentDTO.setIfrisModel(
+            ifrisDocumentDTO.getIfrisModelModelName()
+        );
         // send message to channel
         uploadedDocumentProducerChannel.send(
             MessageBuilder.withPayload(documentDTO).build());
